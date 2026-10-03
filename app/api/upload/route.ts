@@ -16,19 +16,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!fs.existsSync(UPLOADS_DIR)) {
-      fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-    }
-
     const buffer = Buffer.from(await file.arrayBuffer());
     const ext = path.extname(file.name);
     const baseName = path.basename(file.name, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
     const uniqueName = `${baseName}-${Date.now()}-${Math.round(Math.random() * 1e6)}${ext}`;
     const filePath = path.join(UPLOADS_DIR, uniqueName);
 
-    fs.writeFileSync(filePath, buffer);
-
-    const fileUrl = `/uploads/${uniqueName}`;
+    let fileUrl = '';
+    try {
+      if (!fs.existsSync(UPLOADS_DIR)) {
+        fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+      }
+      fs.writeFileSync(filePath, buffer);
+      fileUrl = `/uploads/${uniqueName}`;
+    } catch (fsErr) {
+      // Serverless fallback (e.g. Vercel read-only filesystem)
+      fileUrl = `data:${file.type || 'application/octet-stream'};base64,${buffer.toString('base64')}`;
+    }
 
     return NextResponse.json({
       success: true,

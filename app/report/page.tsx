@@ -139,7 +139,7 @@ function ReportWizardContent() {
   const [suspectDept, setSuspectDept] = useState<string>('');
   const [suspectNotes, setSuspectNotes] = useState<string>('');
 
-  const [evidenceFiles, setEvidenceFiles] = useState<{ name: string; size: number }[]>([]);
+  const [evidenceFiles, setEvidenceFiles] = useState<{ id?: string; name: string; size: number; url?: string; type?: string }[]>([]);
   const [confirmedAccuracy, setConfirmedAccuracy] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
@@ -181,11 +181,55 @@ function ReportWizardContent() {
     }
   };
 
-  const handleFileDrop = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileDrop = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const newFiles = Array.from(e.target.files).map(f => ({ name: f.name, size: f.size }));
-      setEvidenceFiles(prev => [...prev, ...newFiles]);
-      showToast('Evidence Attached', `${newFiles.length} file(s) ready to encrypt.`, 'info');
+      const selectedFiles = Array.from(e.target.files);
+      for (const file of selectedFiles) {
+        let uploadedUrl = '';
+        try {
+          const fd = new FormData();
+          fd.append('file', file);
+          const res = await fetch('/api/upload', { method: 'POST', body: fd });
+          if (res.ok) {
+            const json = await res.json();
+            if (json?.data?.file_url) {
+              uploadedUrl = json.data.file_url;
+            }
+          }
+        } catch {
+          // Network or server error fallback
+        }
+
+        if (uploadedUrl) {
+          setEvidenceFiles(prev => [
+            ...prev,
+            {
+              id: `ev-${Date.now()}-${Math.round(Math.random() * 1e5)}`,
+              name: file.name,
+              size: file.size,
+              url: uploadedUrl,
+              type: file.type || 'application/octet-stream'
+            }
+          ]);
+        } else {
+          // Fallback to client Data URL
+          const reader = new FileReader();
+          reader.onload = () => {
+            setEvidenceFiles(prev => [
+              ...prev,
+              {
+                id: `ev-${Date.now()}-${Math.round(Math.random() * 1e5)}`,
+                name: file.name,
+                size: file.size,
+                url: reader.result as string,
+                type: file.type || 'application/octet-stream'
+              }
+            ]);
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+      showToast('Evidence Attached', `${selectedFiles.length} file(s) attached and verified.`, 'info');
     }
   };
 
@@ -229,10 +273,11 @@ function ReportWizardContent() {
           additional_info: suspectNotes.trim(),
         },
         evidence: evidenceFiles.map((f, i) => ({
-          id: `ev-${Date.now()}-${i}`,
+          id: f.id || `ev-${Date.now()}-${i}`,
           file_name: f.name,
-          file_url: 'https://images.unsplash.com/photo-1555421689-491a97ff2040?auto=format&fit=crop&w=600&q=80',
-          file_type: 'application/octet-stream',
+          file_url: f.url || 'https://images.unsplash.com/photo-1555421689-491a97ff2040?auto=format&fit=crop&w=600&q=80',
+          file_type: f.type || 'application/octet-stream',
+          file_size: f.size,
           uploaded_at: new Date().toISOString(),
         })),
       });

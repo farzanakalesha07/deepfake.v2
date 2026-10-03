@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DEMO_AUTHORITIES } from '@/lib/store';
+import { DEMO_AUTHORITIES } from '@/lib/authorities';
 import { AuthorityRole } from '@/lib/types';
 
 export async function POST(req: NextRequest) {

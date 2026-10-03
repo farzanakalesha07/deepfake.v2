@@ -235,7 +235,7 @@ export const Navbar = () => {
                   <Server className="w-4 h-4 text-cyan-400" />
                   Server Diagnostics & Live API
                 </span>
-                <span className="text-[10px] text-emerald-400 font-mono">Port 5000</span>
+                <span className="text-[10px] text-emerald-400 font-mono">API Active</span>
               </button>
 
               <Link

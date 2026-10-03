@@ -62,8 +62,13 @@ export const Footer = () => {
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200 mb-4">Quick Navigation</h4>
             <ul className="space-y-2.5 text-xs">
               <li>
+                <Link href="/map" className="hover:text-cyan-300 transition-colors">
+                  Interactive Campus Safe Map
+                </Link>
+              </li>
+              <li>
                 <Link href="/report" className="hover:text-cyan-300 transition-colors">
-                  Report Offline / Online Ragging
+                  Report Incident (3-Step Wizard)
                 </Link>
               </li>
               <li>
@@ -72,13 +77,18 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link href="/help" className="hover:text-cyan-300 transition-colors">
+                  Emergency Support &amp; Counseling
+                </Link>
+              </li>
+              <li>
                 <Link href="/safety" className="hover:text-cyan-300 transition-colors">
-                  Student Safety Guide & Checklist
+                  Safety Protocols &amp; Checklist
                 </Link>
               </li>
               <li>
                 <Link href="/privacy" className="hover:text-cyan-300 transition-colors">
-                  Privacy Policy & Protection Model
+                  Privacy Charter &amp; Protection
                 </Link>
               </li>
               <li>

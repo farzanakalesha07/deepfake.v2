@@ -5,283 +5,308 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
   ShieldAlert, 
-  Globe, 
   MapPin, 
   Calendar, 
   Clock, 
-  Paperclip, 
-  UploadCloud, 
-  X, 
   CheckCircle2, 
   ArrowRight, 
   ArrowLeft, 
   Lock, 
   User, 
   UserX, 
-  EyeOff, 
   FileText, 
   Copy, 
   Check, 
   Sparkles, 
   AlertTriangle,
-  Info
+  Ambulance,
+  Wrench,
+  HelpCircle,
+  UploadCloud,
+  X,
+  ChevronRight,
+  TrendingUp,
+  ShieldCheck,
+  Eye,
+  EyeOff
 } from 'lucide-react';
-import { ComplaintCategory, OfflineSubcategory, OnlineSubcategory, IncidentFrequency, EvidenceItem, Complaint } from '@/lib/types';
 import { ComplaintStore } from '@/lib/store';
+import { Complaint, EvidenceItem, IncidentFrequency, ComplaintCategory } from '@/lib/types';
 import { useToast } from '@/components/Toast';
 import confetti from 'canvas-confetti';
 
-function ReportContent() {
+type IssueCategory = 'Harassment' | 'Unsafe Area' | 'Medical' | 'Infrastructure' | 'Other';
+
+interface CategoryOption {
+  id: IssueCategory;
+  title: string;
+  desc: string;
+  icon: any;
+  gradient: string;
+  borderHover: string;
+  badge: string;
+}
+
+const CATEGORIES: CategoryOption[] = [
+  {
+    id: 'Harassment',
+    title: 'Harassment & Bullying',
+    desc: 'Ragging, stalking, verbal intimidation, extortion, cyber abuse, or offensive content.',
+    icon: ShieldAlert,
+    gradient: 'from-purple-900/40 via-purple-600/10 to-transparent',
+    borderHover: 'hover:border-purple-500/60',
+    badge: 'HIGH PRIORITY ESCALATION',
+  },
+  {
+    id: 'Unsafe Area',
+    title: 'Unsafe Campus Zone',
+    desc: 'Poorly lit paths, broken perimeter fences, isolated corridors, or unmonitored gates.',
+    icon: AlertTriangle,
+    gradient: 'from-amber-900/40 via-amber-600/10 to-transparent',
+    borderHover: 'hover:border-amber-500/60',
+    badge: 'PATROL DISPATCH',
+  },
+  {
+    id: 'Medical',
+    title: 'Medical Assistance',
+    desc: 'Medical emergency, student injury, heat exhaustion, or mental health distress.',
+    icon: Ambulance,
+    gradient: 'from-rose-900/40 via-rose-600/10 to-transparent',
+    borderHover: 'hover:border-rose-500/60',
+    badge: 'HEALTH SQUAD',
+  },
+  {
+    id: 'Infrastructure',
+    title: 'Infrastructure Defect',
+    desc: 'Broken street lamps, malfunctioning emergency call boxes, water leaks, or elevator faults.',
+    icon: Wrench,
+    gradient: 'from-cyan-900/40 via-cyan-600/10 to-transparent',
+    borderHover: 'hover:border-cyan-500/60',
+    badge: 'FACILITY REPAIR',
+  },
+  {
+    id: 'Other',
+    title: 'Other Safety Concern',
+    desc: 'Suspicious vehicle loitering, unofficial fresher gatherings, or general welfare inquiry.',
+    icon: HelpCircle,
+    gradient: 'from-blue-900/40 via-blue-600/10 to-transparent',
+    borderHover: 'hover:border-blue-500/60',
+    badge: 'SAFETY INTAKE',
+  },
+];
+
+const PRESET_LOCATIONS = [
+  'Main Academic Quadrangle (Block A)',
+  'Block B - East Corridor (Near Lab 4)',
+  'Central Library North Walkway',
+  'North Cafeteria & Mechanical Walkway',
+  'Girls Hostel Block C Entrance',
+  'Boys Hostel Wing B Corridors',
+  'Sports Complex & Gymnasium Lawn',
+  'West Campus Perimeter Boundary',
+  'Online / Department Batch WhatsApp & Discord',
+];
+
+function ReportWizardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showToast } = useToast();
 
-  // Step state: 1 (Type) -> 2 (Details) -> 3 (Victim) -> 4 (Suspect) -> 5 (Review) -> 6 (Success)
+  // 3-Step reporting process: 1 (What happened?) -> 2 (Where?) -> 3 (Submit) -> 4 (Success state)
   const [currentStep, setCurrentStep] = useState<number>(1);
 
-  // Form State
-  const [complaintType, setComplaintType] = useState<ComplaintCategory>('OFFLINE_RAGGING');
+  // Step 1: Category
+  const [selectedCategory, setSelectedCategory] = useState<IssueCategory>('Harassment');
   const [subcategory, setSubcategory] = useState<string>('Following / Stalking');
-  
-  // Step 2: Incident Details
-  const [incidentDate, setIncidentDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [incidentTime, setIncidentTime] = useState<string>('16:00');
-  const [location, setLocation] = useState<string>('');
+
+  // Step 2: Where & Details
+  const [location, setLocation] = useState<string>('North Cafeteria & Mechanical Walkway');
+  const [customLocation, setCustomLocation] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [frequency, setFrequency] = useState<IncidentFrequency>('First time');
-  const [isOngoing, setIsOngoing] = useState<boolean>(false);
-  const [evidenceList, setEvidenceList] = useState<EvidenceItem[]>([]);
-  const [uploadingEvidence, setUploadingEvidence] = useState<boolean>(false);
+  const [incidentDate, setIncidentDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [incidentTime, setIncidentTime] = useState<string>('16:30');
+  const [isOngoing, setIsOngoing] = useState<boolean>(true);
 
-  // Step 3: Victim Details
-  const [isAnonymous, setIsAnonymous] = useState<boolean>(false);
+  // Step 3: Victim & Suspect details
+  const [isAnonymous, setIsAnonymous] = useState<boolean>(true);
   const [victimName, setVictimName] = useState<string>('');
   const [studentId, setStudentId] = useState<string>('');
   const [victimDept, setVictimDept] = useState<string>('Computer Science & Engineering');
-  const [classYear, setClassYear] = useState<string>('1st Year');
   const [victimPhone, setVictimPhone] = useState<string>('');
-  const [victimEmail, setVictimEmail] = useState<string>('');
 
-  // Step 4: Suspect Details
   const [suspectName, setSuspectName] = useState<string>('');
   const [suspectDept, setSuspectDept] = useState<string>('');
-  const [suspectClass, setSuspectClass] = useState<string>('');
-  const [suspectPhone, setSuspectPhone] = useState<string>('');
-  const [suspectInfo, setSuspectInfo] = useState<string>('');
+  const [suspectNotes, setSuspectNotes] = useState<string>('');
 
-  // Step 5: Affirmation & Submission
+  const [evidenceFiles, setEvidenceFiles] = useState<{ name: string; size: number }[]>([]);
   const [confirmedAccuracy, setConfirmedAccuracy] = useState<boolean>(false);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [submitting, setSubmitting] = useState<boolean>(false);
 
-  // Step 6: Post-submission outcome
-  const [submittedComplaint, setSubmittedComplaint] = useState<Complaint | null>(null);
-  const [copiedId, setCopiedId] = useState<boolean>(false);
+  // Success state
+  const [createdComplaint, setCreatedComplaint] = useState<Complaint | null>(null);
+  const [idCopied, setIdCopied] = useState<boolean>(false);
 
-  // Check URL query param for default type
+  // Pre-fill location from query param if passed
   useEffect(() => {
-    const typeParam = searchParams.get('type');
-    if (typeParam === 'ONLINE_RAGGING') {
-      setComplaintType('ONLINE_RAGGING');
-      setSubcategory('Fake Accounts & Impersonation');
-    } else if (typeParam === 'OFFLINE_RAGGING') {
-      setComplaintType('OFFLINE_RAGGING');
-      setSubcategory('Following / Stalking');
+    const locParam = searchParams.get('location');
+    if (locParam) {
+      setLocation(locParam);
     }
   }, [searchParams]);
 
-  // Handle Mock/Base64 File Upload
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    setUploadingEvidence(true);
-    const newItems: EvidenceItem[] = [];
-
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (uploadEvent) => {
-        newItems.push({
-          id: `ev-${Date.now()}-${Math.random()}`,
-          file_name: file.name,
-          file_url: (uploadEvent.target?.result as string) || '',
-          file_type: file.type || 'file',
-          file_size: file.size,
-          uploaded_at: new Date().toISOString(),
-        });
-
-        if (newItems.length === files.length) {
-          setEvidenceList((prev) => [...prev, ...newItems]);
-          setUploadingEvidence(false);
-          showToast('Evidence Uploaded', `${files.length} file(s) attached securely.`, 'success');
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const removeEvidence = (id: string) => {
-    setEvidenceList((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  // Validation before proceeding
-  const handleNextFromStep1 = () => {
-    setCurrentStep(2);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleNextFromStep2 = () => {
-    if (!location.trim()) {
-      showToast('Location Required', 'Please specify where the incident took place.', 'warning');
-      return;
+  const handleNext = () => {
+    if (currentStep === 1) {
+      setCurrentStep(2);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (currentStep === 2) {
+      const activeLoc = location === 'Other (Specify Below)' ? customLocation.trim() : location;
+      if (!activeLoc) {
+        showToast('Missing Location', 'Please specify where this incident occurred.', 'error');
+        return;
+      }
+      if (!description.trim() || description.trim().length < 10) {
+        showToast('Description Needed', 'Please provide at least a brief description (10+ characters).', 'error');
+        return;
+      }
+      setCurrentStep(3);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    if (!description.trim() || description.trim().length < 15) {
-      showToast('Description Needed', 'Please provide a clear description (at least 15 characters).', 'warning');
-      return;
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1 && currentStep <= 3) {
+      setCurrentStep(currentStep - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    setCurrentStep(3);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleNextFromStep3 = () => {
-    if (!isAnonymous && !victimName.trim()) {
-      showToast('Name Required', 'Please enter your name or switch to Anonymous Report mode.', 'warning');
-      return;
+  const handleFileDrop = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const newFiles = Array.from(e.target.files).map(f => ({ name: f.name, size: f.size }));
+      setEvidenceFiles(prev => [...prev, ...newFiles]);
+      showToast('Evidence Attached', `${newFiles.length} file(s) ready to encrypt.`, 'info');
     }
-    setCurrentStep(4);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleNextFromStep4 = () => {
-    setCurrentStep(5);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleRemoveFile = (index: number) => {
+    setEvidenceFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Submission
-  const handleSubmitComplaint = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!confirmedAccuracy) {
-      showToast('Confirmation Required', 'Please confirm the accuracy checkbox before submitting.', 'warning');
+      showToast('Confirmation Required', 'Please check the confirmation box to submit.', 'error');
       return;
     }
 
-    setIsSubmitting(true);
+    setSubmitting(true);
+    const finalLocation = location === 'Other (Specify Below)' ? customLocation.trim() : location;
+
+    // Map into core complaint category for backend compatibility
+    const mappedType: ComplaintCategory = selectedCategory === 'Harassment' ? 'OFFLINE_RAGGING' : 'OFFLINE_RAGGING';
 
     try {
-      const created = ComplaintStore.submitComplaint({
-        type: complaintType,
-        subcategory: subcategory as any,
-        description,
+      const newReport = ComplaintStore.submitComplaint({
+        type: mappedType,
+        subcategory: `${selectedCategory}: ${subcategory || 'General Incident'}`,
+        description: description.trim(),
         incident_date: incidentDate,
         incident_time: incidentTime,
-        location,
-        frequency,
+        location: finalLocation,
+        frequency: frequency,
         is_ongoing: isOngoing,
         victim: {
           anonymous: isAnonymous,
-          name: isAnonymous ? '' : victimName,
-          student_id: isAnonymous ? '' : studentId,
-          department: isAnonymous ? victimDept : victimDept,
-          class_year: isAnonymous ? classYear : classYear,
-          phone: victimPhone,
-          email: isAnonymous ? '' : victimEmail,
+          name: isAnonymous ? '' : victimName.trim(),
+          student_id: isAnonymous ? '' : studentId.trim(),
+          department: victimDept,
+          phone: isAnonymous ? '' : victimPhone.trim(),
         },
         suspect: {
-          name: suspectName,
-          department: suspectDept,
-          class_year: suspectClass,
-          phone: suspectPhone,
-          additional_info: suspectInfo,
+          name: suspectName.trim(),
+          department: suspectDept.trim(),
+          additional_info: suspectNotes.trim(),
         },
-        evidence: evidenceList,
+        evidence: evidenceFiles.map((f, i) => ({
+          id: `ev-${Date.now()}-${i}`,
+          file_name: f.name,
+          file_url: 'https://images.unsplash.com/photo-1555421689-491a97ff2040?auto=format&fit=crop&w=600&q=80',
+          file_type: 'application/octet-stream',
+          uploaded_at: new Date().toISOString(),
+        })),
       });
 
-      setSubmittedComplaint(created);
-      setCurrentStep(6);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setCreatedComplaint(newReport);
+      setCurrentStep(4);
 
-      // Trigger celebratory confetti for student courage
+      // Celebration effect
       try {
         confetti({
           particleCount: 80,
           spread: 70,
-          origin: { y: 0.6 }
+          origin: { y: 0.6 },
+          colors: ['#06B6D4', '#8B5CF6', '#10B981']
         });
-      } catch (err) {
-        // canvas-confetti fallback
-      }
+      } catch (err) {}
 
-      showToast(
-        'Complaint Submitted!',
-        `Your unique ID is ${created.complaint_id}. Please save it.`,
-        'success'
-      );
-    } catch (err) {
-      console.error(err);
-      showToast('Submission Error', 'Failed to register complaint. Please try again.', 'error');
+      showToast('Report Submitted Securely', `Complaint ID: ${newReport.complaint_id}`, 'success');
+    } catch (err: any) {
+      showToast('Submission Error', err.message || 'Failed to submit complaint', 'error');
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   };
 
   const copyComplaintId = () => {
-    if (!submittedComplaint) return;
-    navigator.clipboard.writeText(submittedComplaint.complaint_id);
-    setCopiedId(true);
-    showToast('Copied to Clipboard', submittedComplaint.complaint_id, 'info');
-    setTimeout(() => setCopiedId(false), 2500);
+    if (!createdComplaint) return;
+    navigator.clipboard.writeText(createdComplaint.complaint_id);
+    setIdCopied(true);
+    showToast('Copied to Clipboard', createdComplaint.complaint_id, 'info');
+    setTimeout(() => setIdCopied(false), 2000);
   };
 
   return (
-    <div className="min-h-screen py-10 sm:py-16 max-w-4xl mx-auto px-4 sm:px-6">
+    <div className="min-h-screen py-8 sm:py-12 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
       
-      {/* Multi-step Progress Header */}
-      {currentStep < 6 && (
-        <div className="mb-10 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/20 mb-3">
-            <Lock className="w-3.5 h-3.5" />
-            <span>CONFIDENTIAL INCIDENT INTAKE</span>
+      {/* Step Indicator Header (01 What happened? | 02 Where? | 03 Submit) */}
+      {currentStep <= 3 && (
+        <div className="space-y-4">
+          <div className="text-center space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-purple-600/15 text-purple-300 border border-purple-500/30">
+              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+              <span>CONFIDENTIAL SAFETY REPORTING</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+              Report an Incident
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto">
+              Your report is encrypted and protected. Choose between 100% Anonymous Mode or Confidential Staff Follow-Up.
+            </p>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white">
-            Report an Incident
-          </h1>
-          <p className="text-sm text-slate-400 mt-2 max-w-xl mx-auto">
-            Take a few moments to provide details. Your report will be encrypted and routed according to campus safety protocols.
-          </p>
 
-          {/* Stepper Dots & Labels */}
-          <div className="mt-8 flex items-center justify-between max-w-2xl mx-auto relative">
-            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white/10 -translate-y-1/2 -z-0" />
-            <div 
-              className="absolute top-1/2 left-0 h-0.5 bg-gradient-to-r from-purple-500 to-cyan-400 -translate-y-1/2 -z-0 transition-all duration-500"
-              style={{ width: `${((currentStep - 1) / 4) * 100}%` }}
-            />
-
+          {/* 3-Step Visual Progress Bar */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-xl mx-auto pt-2">
             {[
-              { num: 1, label: 'Type' },
-              { num: 2, label: 'Incident' },
-              { num: 3, label: 'Victim' },
-              { num: 4, label: 'Suspect' },
-              { num: 5, label: 'Submit' },
-            ].map((step) => {
-              const isPast = currentStep > step.num;
-              const isCurrent = currentStep === step.num;
+              { num: '01', title: 'What happened?', step: 1 },
+              { num: '02', title: 'Where & When?', step: 2 },
+              { num: '03', title: 'Submit Securely', step: 3 },
+            ].map((s) => {
+              const isCurrent = currentStep === s.step;
+              const isDone = currentStep > s.step;
               return (
-                <div key={step.num} className="relative z-10 flex flex-col items-center">
-                  <div
-                    className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
-                      isPast
-                        ? 'bg-cyan-500 text-navy-950 ring-4 ring-cyan-500/20'
-                        : isCurrent
-                        ? 'bg-purple-600 text-white ring-4 ring-purple-600/30 scale-110'
-                        : 'bg-navy-900 border border-white/20 text-slate-400'
-                    }`}
-                  >
-                    {isPast ? <Check className="w-4 h-4 stroke-[3]" /> : step.num}
-                  </div>
-                  <span className={`text-[11px] font-medium mt-2 hidden sm:block ${
-                    isCurrent ? 'text-white font-bold' : 'text-slate-400'
-                  }`}>
-                    {step.label}
-                  </span>
+                <div 
+                  key={s.step} 
+                  className={`p-3 rounded-2xl border transition-all text-center ${
+                    isCurrent 
+                      ? 'bg-purple-600/20 border-cyan-400 text-white shadow-glow-cyan' 
+                      : isDone
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                      : 'bg-white/5 border-white/10 text-slate-500'
+                  }`}
+                >
+                  <p className="text-[10px] font-mono font-bold tracking-wider opacity-80">{s.num}</p>
+                  <p className="text-xs font-bold truncate mt-0.5">{s.title}</p>
                 </div>
               );
             })}
@@ -289,937 +314,454 @@ function ReportContent() {
         </div>
       )}
 
-      {/* Main Multi-Step Container Card */}
-      <div className="bg-navy-900/90 border border-white/15 rounded-3xl p-6 sm:p-10 backdrop-blur-xl shadow-2xl relative">
-
-        {/* =========================================================
-            STEP 1: COMPLAINT TYPE
-            ========================================================= */}
-        {currentStep === 1 && (
-          <div className="space-y-6">
+      {/* ================= STEP 01: WHAT HAPPENED? ================= */}
+      {currentStep === 1 && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          <div className="p-6 rounded-3xl bg-navy-900/80 border border-white/10 backdrop-blur-xl shadow-2xl space-y-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-white">
-                Step 1: Select Incident Category
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                Choose whether this incident occurred physically on campus or virtually online.
+              <h2 className="text-xl font-bold text-white">Select Incident Category</h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Choose the primary nature of the event so our automated escalation engine assigns appropriate jurisdictional priority.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-              
-              {/* Option A: Offline Ragging */}
-              <div
-                onClick={() => {
-                  setComplaintType('OFFLINE_RAGGING');
-                  setSubcategory('Following / Stalking');
-                }}
-                className={`cursor-pointer rounded-2xl p-6 border-2 transition-all duration-200 flex flex-col justify-between ${
-                  complaintType === 'OFFLINE_RAGGING'
-                    ? 'bg-purple-950/40 border-purple-500 shadow-glow-purple ring-1 ring-purple-500'
-                    : 'bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/[0.07]'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 rounded-xl bg-purple-600/20 border border-purple-500/40 flex items-center justify-center">
-                      <ShieldAlert className="w-6 h-6 text-purple-400" />
-                    </div>
-                    {complaintType === 'OFFLINE_RAGGING' && (
-                      <span className="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center">
-                        <Check className="w-4 h-4 stroke-[3]" />
+            {/* Large Interactive Category Cards (As Specified) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {CATEGORIES.map((cat) => {
+                const Icon = cat.icon;
+                const isSelected = selectedCategory === cat.id;
+                return (
+                  <div
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`p-5 rounded-3xl border cursor-pointer transition-all duration-300 relative overflow-hidden group ${
+                      isSelected
+                        ? 'bg-gradient-to-br from-purple-900/50 via-navy-900 to-navy-950 border-cyan-400 shadow-glow-cyan scale-[1.02]'
+                        : `bg-navy-900/50 border-white/10 ${cat.borderHover} hover:scale-[1.01]`
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${
+                        isSelected 
+                          ? 'bg-cyan-500 text-navy-950 shadow-glow-cyan' 
+                          : 'bg-white/10 text-slate-300'
+                      }`}>
+                        <Icon className="w-6 h-6" />
+                      </div>
+                      <span className="text-[9px] font-bold tracking-wider px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-slate-400">
+                        {cat.badge}
                       </span>
-                    )}
-                  </div>
-                  <h3 className="text-lg font-bold text-white mb-1">
-                    OFFLINE RAGGING
-                  </h3>
-                  <div className="text-xs font-semibold text-purple-300 mb-3">
-                    Physical / In-Person Harassment
-                  </div>
-                  <p className="text-xs text-slate-300 mb-4">
-                    Examples include:
-                  </p>
-                  <ul className="text-xs text-slate-400 space-y-1.5 list-disc list-inside">
-                    <li>Following / stalking on campus paths</li>
-                    <li>Unwanted behaviour or forced tasks</li>
-                    <li>Threats, intimidation &amp; hostel bullying</li>
-                    <li>Physical assault or restraint</li>
-                    <li>Other offline campus incidents</li>
-                  </ul>
-                </div>
-
-                <div className="mt-6 pt-4 border-t border-white/10 text-xs font-medium text-purple-300 flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5" />
-                  <span>Classrooms, Hostels, Canteen &amp; Grounds</span>
-                </div>
-              </div>
-
-              {/* Option B: Online Ragging */}
-              <div
-                onClick={() => {
-                  setComplaintType('ONLINE_RAGGING');
-                  setSubcategory('Fake Accounts & Impersonation');
-                }}
-                className={`cursor-pointer rounded-2xl p-6 border-2 transition-all duration-200 flex flex-col justify-between ${
-                  complaintType === 'ONLINE_RAGGING'
-                    ? 'bg-cyan-950/40 border-cyan-500 shadow-glow-cyan ring-1 ring-cyan-500'
-                    : 'bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/[0.07]'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center">
-                      <Globe className="w-6 h-6 text-cyan-400" />
                     </div>
-                    {complaintType === 'ONLINE_RAGGING' && (
-                      <span className="w-6 h-6 rounded-full bg-cyan-500 text-navy-950 flex items-center justify-center font-bold">
-                        <Check className="w-4 h-4 stroke-[3]" />
+
+                    <h3 className="text-base font-bold text-white mt-4">
+                      {cat.title}
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                      {cat.desc}
+                    </p>
+
+                    <div className="mt-4 flex items-center justify-between text-xs font-semibold">
+                      <span className={isSelected ? 'text-cyan-400' : 'text-slate-500'}>
+                        {isSelected ? 'Selected Category' : 'Click to select'}
                       </span>
-                    )}
+                      <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                        isSelected ? 'bg-cyan-400 border-cyan-300 text-navy-950' : 'border-white/20'
+                      }`}>
+                        {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                      </div>
+                    </div>
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-1">
-                    ONLINE RAGGING
-                  </h3>
-                  <div className="text-xs font-semibold text-cyan-300 mb-3">
-                    Digital / Cyber Harassment
-                  </div>
-                  <p className="text-xs text-slate-300 mb-4">
-                    Examples include:
-                  </p>
-                  <ul className="text-xs text-slate-400 space-y-1.5 list-disc list-inside">
-                    <li>Fake accounts &amp; impersonation</li>
-                    <li>Threatening messages &amp; extortion</li>
-                    <li>Obscene, abusive or non-consensual content</li>
-                    <li>Social media doxxing &amp; cyber harassment</li>
-                    <li>Other digital/online incidents</li>
-                  </ul>
-                </div>
-
-                <div className="mt-6 pt-4 border-t border-white/10 text-xs font-medium text-cyan-300 flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5" />
-                  <span>WhatsApp, Instagram, Discord &amp; Forums</span>
-                </div>
-              </div>
-
+                );
+              })}
             </div>
 
-            {/* Subcategory dropdown */}
-            <div className="p-4 rounded-2xl bg-white/5 border border-white/10 mt-4">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                Specify Primary Incident Subcategory
-              </label>
-              <select
-                value={subcategory}
-                onChange={(e) => setSubcategory(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-navy-950 border border-white/15 text-sm text-white focus:outline-none focus:border-cyan-400"
-              >
-                {complaintType === 'OFFLINE_RAGGING' ? (
-                  <>
-                    <option value="Following / Stalking">Following / Stalking</option>
-                    <option value="Unwanted Behaviour">Unwanted Behaviour</option>
-                    <option value="Threats / Intimidation">Threats / Intimidation</option>
-                    <option value="Physical Harassment">Physical Harassment</option>
-                    <option value="Hostel Bullying">Hostel Bullying</option>
-                    <option value="Other Offline Incidents">Other Offline Incidents</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="Fake Accounts & Impersonation">Fake Accounts & Impersonation</option>
-                    <option value="Threatening Messages">Threatening Messages</option>
-                    <option value="Obscene or Abusive Content">Obscene or Abusive Content</option>
-                    <option value="Cyber Harassment">Cyber Harassment</option>
-                    <option value="Social Media Doxxing">Social Media Doxxing</option>
-                    <option value="Other Online Incidents">Other Online Incidents</option>
-                  </>
-                )}
-              </select>
-            </div>
-
-            {/* Step 1 Actions */}
-            <div className="pt-6 flex justify-end">
-              <button
-                type="button"
-                onClick={handleNextFromStep1}
-                className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-500 text-white font-bold text-sm flex items-center gap-2 hover:opacity-95 shadow-glow-purple transition-all"
-              >
-                <span>Continue to Incident Details</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+            {/* Sub-specification pills based on category */}
+            <div className="pt-2 border-t border-white/5 space-y-2">
+              <label className="text-xs font-semibold text-slate-300">Specific Form / Type</label>
+              <div className="flex flex-wrap gap-2 text-xs">
+                {(selectedCategory === 'Harassment' 
+                  ? ['Following / Stalking', 'Verbal Abuse & Humiliation', 'Hostel Extortion', 'Fake Accounts & Online Impersonation', 'Obscene Messages'] 
+                  : selectedCategory === 'Unsafe Area' 
+                  ? ['Broken Streetlight / Pitch Dark Walkway', 'Hostel Boundary Trespass', 'Unattended Security Gate', 'Isolated Study Wing']
+                  : selectedCategory === 'Medical'
+                  ? ['Physical Injury', 'Acute Panic / Distress', 'Heat Exhaustion', 'First Aid Needed']
+                  : ['Electrical Hazard', 'Broken Door / Lock', 'Elevator Malfunction', 'Suspicious Activity']
+                ).map((sub) => (
+                  <button
+                    key={sub}
+                    type="button"
+                    onClick={() => setSubcategory(sub)}
+                    className={`px-3 py-1.5 rounded-xl transition-all ${
+                      subcategory === sub
+                        ? 'bg-purple-600 text-white font-bold shadow-sm'
+                        : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 border border-white/5'
+                    }`}
+                  >
+                    {sub}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-        )}
 
-        {/* =========================================================
-            STEP 2: INCIDENT DETAILS & EVIDENCE
-            ========================================================= */}
-        {currentStep === 2 && (
-          <div className="space-y-6">
+          {/* Next Button */}
+          <div className="flex justify-end">
+            <button
+              onClick={handleNext}
+              className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-brand-violet to-cyan-500 text-white font-bold text-sm shadow-glow-purple flex items-center gap-2 hover:opacity-95 active:scale-95 transition-all"
+            >
+              <span>Continue to Step 02 (Where?)</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ================= STEP 02: WHERE & WHEN? ================= */}
+      {currentStep === 2 && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          <div className="p-6 sm:p-8 rounded-3xl bg-navy-900/80 border border-white/10 backdrop-blur-xl shadow-2xl space-y-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-white">
-                Step 2: Incident Details
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                Provide accurate situational context to assist the inquiry authority.
+              <h2 className="text-xl font-bold text-white">Location & Incident Details</h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Provide clear location information so response squads can map and investigate the area.
               </p>
             </div>
 
+            {/* Location Selector */}
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Campus Location / Building</span>
+              </label>
+
+              <select
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="w-full px-4 py-3 rounded-2xl bg-navy-950 border border-white/15 text-sm text-white focus:outline-none focus:border-cyan-400"
+              >
+                {PRESET_LOCATIONS.map((loc) => (
+                  <option key={loc} value={loc} className="bg-navy-950 text-white">
+                    {loc}
+                  </option>
+                ))}
+                <option value="Other (Specify Below)" className="bg-navy-950 text-white">
+                  Other (Specify custom location below...)
+                </option>
+              </select>
+
+              {location === 'Other (Specify Below)' && (
+                <input
+                  type="text"
+                  value={customLocation}
+                  onChange={(e) => setCustomLocation(e.target.value)}
+                  placeholder="Enter exact room, building, floor, or landmark..."
+                  className="w-full mt-2 px-4 py-3 rounded-2xl bg-black/40 border border-cyan-400/40 text-sm text-white focus:outline-none"
+                />
+              )}
+            </div>
+
+            {/* Date & Time Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Date of Incident *
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Date of Incident</span>
                 </label>
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={incidentDate}
-                    onChange={(e) => setIncidentDate(e.target.value)}
-                    max={new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-3 rounded-xl bg-navy-950 border border-white/15 text-sm text-white focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
+                <input
+                  type="date"
+                  value={incidentDate}
+                  onChange={(e) => setIncidentDate(e.target.value)}
+                  className="w-full px-4 py-3 rounded-2xl bg-navy-950 border border-white/15 text-sm text-white focus:outline-none focus:border-purple-400"
+                />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Approximate Time
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Approximate Time</span>
                 </label>
                 <input
                   type="time"
                   value={incidentTime}
                   onChange={(e) => setIncidentTime(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-navy-950 border border-white/15 text-sm text-white focus:outline-none focus:border-cyan-400"
+                  className="w-full px-4 py-3 rounded-2xl bg-navy-950 border border-white/15 text-sm text-white focus:outline-none focus:border-purple-400"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Exact Location or Digital Platform *
+            {/* Frequency & Escalation Trigger */}
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                <TrendingUp className="w-3.5 h-3.5 text-amber-400" />
+                <span>Frequency (Automated Escalation Criterion)</span>
               </label>
-              <input
-                type="text"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="e.g. North Cafeteria Walkway, Boys Hostel Room 302, Instagram @username"
-                className="w-full px-4 py-3 rounded-xl bg-navy-950 border border-white/15 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Detailed Incident Description *
-              </label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={4}
-                placeholder="Describe what occurred clearly. Include what was said, any actions taken, who was present, and immediate consequences..."
-                className="w-full px-4 py-3 rounded-xl bg-navy-950 border border-white/15 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 leading-relaxed"
-              />
-            </div>
-
-            {/* Frequency & Ongoing */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  How often has this happened? *
-                </label>
-                <select
-                  value={frequency}
-                  onChange={(e) => setFrequency(e.target.value as IncidentFrequency)}
-                  className="w-full px-4 py-3 rounded-xl bg-navy-950 border border-white/15 text-sm text-white focus:outline-none focus:border-cyan-400"
-                >
-                  <option value="First time">First time</option>
-                  <option value="Happened before">Happened before</option>
-                  <option value="Repeated frequently">Repeated frequently</option>
-                </select>
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Repeated reports automatically escalate higher in the authority chain.
+              <div className="grid grid-cols-3 gap-2">
+                {(['First time', 'Happened before', 'Repeated frequently'] as IncidentFrequency[]).map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setFrequency(f)}
+                    className={`py-3 px-2 rounded-2xl border text-center transition-all text-xs font-bold ${
+                      frequency === f
+                        ? 'bg-purple-600/30 border-purple-500 text-purple-300 shadow-sm'
+                        : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+              {frequency === 'Repeated frequently' && (
+                <p className="text-[11px] text-amber-400 flex items-center gap-1 mt-1">
+                  <AlertTriangle className="w-3 h-3 shrink-0" />
+                  Chronic harassment detected. This will trigger immediate promotion to Level 2 (Dean of Student Affairs).
                 </p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Is the situation currently ongoing? *
-                </label>
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsOngoing(true)}
-                    className={`flex-1 py-3 rounded-xl text-sm font-semibold border transition-all ${
-                      isOngoing
-                        ? 'bg-rose-600/30 border-rose-500 text-rose-300'
-                        : 'bg-navy-950 border-white/15 text-slate-400'
-                    }`}
-                  >
-                    Yes (Active Danger)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsOngoing(false)}
-                    className={`flex-1 py-3 rounded-xl text-sm font-semibold border transition-all ${
-                      !isOngoing
-                        ? 'bg-emerald-600/30 border-emerald-500 text-emerald-300'
-                        : 'bg-navy-950 border-white/15 text-slate-400'
-                    }`}
-                  >
-                    No (Past Event)
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Optional Evidence Upload */}
-            <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-                  <Paperclip className="w-4 h-4 text-cyan-400" />
-                  Optional Evidence Upload
-                </label>
-                <span className="text-[11px] text-slate-400">
-                  Screenshots, Photos, PDFs, Audio
-                </span>
-              </div>
-
-              <div className="border-2 border-dashed border-white/20 hover:border-cyan-400/50 rounded-2xl p-6 text-center transition-colors">
-                <input
-                  type="file"
-                  id="evidence-upload"
-                  multiple
-                  accept="image/*,application/pdf"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                <label
-                  htmlFor="evidence-upload"
-                  className="cursor-pointer flex flex-col items-center justify-center gap-2"
-                >
-                  <UploadCloud className="w-8 h-8 text-cyan-400" />
-                  <span className="text-xs sm:text-sm font-semibold text-slate-200">
-                    Click to select files or drag &amp; drop
-                  </span>
-                  <span className="text-[11px] text-slate-400">
-                    PNG, JPG, PDF up to 25MB. Files are encrypted on transmission.
-                  </span>
-                </label>
-              </div>
-
-              {/* Uploaded Files Previews */}
-              {evidenceList.length > 0 && (
-                <div className="mt-4 space-y-2">
-                  {evidenceList.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between p-2.5 rounded-xl bg-navy-950 border border-white/10 text-xs text-slate-200"
-                    >
-                      <div className="flex items-center gap-2 truncate">
-                        <FileText className="w-4 h-4 text-purple-400 shrink-0" />
-                        <span className="truncate">{item.file_name}</span>
-                        {item.file_size && (
-                          <span className="text-[10px] text-slate-500">
-                            ({(item.file_size / 1024).toFixed(1)} KB)
-                          </span>
-                        )}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeEvidence(item.id)}
-                        className="text-slate-400 hover:text-rose-400 p-1"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
               )}
             </div>
 
-            {/* Privacy notice banner */}
-            <div className="p-4 rounded-xl bg-navy-950 border border-cyan-500/20 flex items-center gap-3 text-xs text-cyan-300">
-              <Lock className="w-4 h-4 shrink-0 text-cyan-400" />
-              <span>Only authorized personnel can access sensitive complaint information.</span>
-            </div>
-
-            {/* Navigation buttons */}
-            <div className="pt-4 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => setCurrentStep(1)}
-                className="px-5 py-3 rounded-xl bg-white/10 text-slate-300 font-semibold text-sm hover:bg-white/20 transition-colors flex items-center gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleNextFromStep2}
-                className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-500 text-white font-bold text-sm flex items-center gap-2 hover:opacity-95 shadow-glow-purple transition-all"
-              >
-                <span>Continue to Victim Details</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+            {/* Incident Description Textarea */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-300">
+                Detailed Incident Description <span className="text-rose-400">*</span>
+              </label>
+              <textarea
+                rows={4}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Describe what occurred, words spoken, threats made, vehicle license plate or account usernames..."
+                className="w-full px-4 py-3 rounded-2xl bg-navy-950 border border-white/15 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 resize-none leading-relaxed"
+              />
             </div>
           </div>
-        )}
 
-        {/* =========================================================
-            STEP 3: VICTIM DETAILS (ANONYMOUS VS CONFIDENTIAL)
-            ========================================================= */}
-        {currentStep === 3 && (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-white">
-                Step 3: Victim Identity Options
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                Choose between complete anonymity or confidential contact for proactive support.
-              </p>
-            </div>
+          {/* Navigation Buttons */}
+          <div className="flex items-center justify-between">
+            <button
+              onClick={handleBack}
+              className="px-5 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold border border-white/10 transition-colors flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back</span>
+            </button>
+            <button
+              onClick={handleNext}
+              className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-cyan-500 text-white font-bold text-sm shadow-glow-purple flex items-center gap-2 hover:opacity-95 active:scale-95 transition-all"
+            >
+              <span>Continue to Step 03 (Submit)</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
-            {/* Mode Selector Toggle */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div
-                onClick={() => setIsAnonymous(false)}
-                className={`cursor-pointer p-5 rounded-2xl border-2 transition-all ${
-                  !isAnonymous
-                    ? 'bg-purple-950/40 border-purple-500 shadow-glow-purple'
-                    : 'bg-white/5 border-white/10 hover:border-white/20'
-                }`}
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-xl bg-purple-600/20 border border-purple-500/40 flex items-center justify-center">
-                    <User className="w-5 h-5 text-purple-300" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-white text-sm">Confidential Report</h4>
-                    <span className="text-[11px] text-purple-300">Recommended for follow-up</span>
-                  </div>
-                </div>
-                <p className="text-xs text-slate-300 mt-2">
-                  Your identity is protected under college privacy bylaws and only accessed by the investigating authority.
-                </p>
-              </div>
-
-              <div
-                onClick={() => setIsAnonymous(true)}
-                className={`cursor-pointer p-5 rounded-2xl border-2 transition-all ${
-                  isAnonymous
-                    ? 'bg-cyan-950/40 border-cyan-500 shadow-glow-cyan'
-                    : 'bg-white/5 border-white/10 hover:border-white/20'
-                }`}
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center">
-                    <EyeOff className="w-5 h-5 text-cyan-300" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-white text-sm">Anonymous Report</h4>
-                    <span className="text-[11px] text-cyan-300">100% Identity Shielded</span>
-                  </div>
-                </div>
-                <p className="text-xs text-slate-300 mt-2">
-                  No name or student ID is recorded. You will rely solely on your Complaint ID for updates.
-                </p>
-              </div>
-            </div>
-
-            {/* Explanation Quote */}
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-xs text-slate-300 italic">
-              &ldquo;You may skip optional personal information. Providing contact details can help authorities follow up with you.&rdquo;
-            </div>
-
-            {/* Form Fields for Confidential Mode */}
-            {!isAnonymous ? (
-              <div className="space-y-4 pt-2">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      Full Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={victimName}
-                      onChange={(e) => setVictimName(e.target.value)}
-                      placeholder="e.g. Aditi Sharma"
-                      className="w-full px-4 py-3 rounded-xl bg-navy-950 border border-white/15 text-sm text-white focus:outline-none focus:border-purple-400"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      Student Roll / ID
-                    </label>
-                    <input
-                      type="text"
-                      value={studentId}
-                      onChange={(e) => setStudentId(e.target.value)}
-                      placeholder="e.g. STU-2024-CSE-091"
-                      className="w-full px-4 py-3 rounded-xl bg-navy-950 border border-white/15 text-sm text-white focus:outline-none focus:border-purple-400"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      Department
-                    </label>
-                    <select
-                      value={victimDept}
-                      onChange={(e) => setVictimDept(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-navy-950 border border-white/15 text-sm text-white focus:outline-none focus:border-purple-400"
-                    >
-                      <option value="Computer Science & Engineering">Computer Science & Engineering</option>
-                      <option value="Information Technology">Information Technology</option>
-                      <option value="Electronics & Communication">Electronics & Communication</option>
-                      <option value="Mechanical Engineering">Mechanical Engineering</option>
-                      <option value="Civil Engineering">Civil Engineering</option>
-                      <option value="Biotechnology">Biotechnology</option>
-                      <option value="Management Studies (MBA/BBA)">Management Studies</option>
-                      <option value="Applied Sciences">Applied Sciences</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      Class / Year
-                    </label>
-                    <select
-                      value={classYear}
-                      onChange={(e) => setClassYear(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-navy-950 border border-white/15 text-sm text-white focus:outline-none focus:border-purple-400"
-                    >
-                      <option value="1st Year (Fresher)">1st Year (Fresher)</option>
-                      <option value="2nd Year">2nd Year</option>
-                      <option value="3rd Year">3rd Year</option>
-                      <option value="Final Year">Final Year</option>
-                      <option value="Postgraduate / PhD">Postgraduate / PhD</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      Phone Number (Optional)
-                    </label>
-                    <input
-                      type="tel"
-                      value={victimPhone}
-                      onChange={(e) => setVictimPhone(e.target.value)}
-                      placeholder="+91 98765 43210"
-                      className="w-full px-4 py-3 rounded-xl bg-navy-950 border border-white/15 text-sm text-white focus:outline-none focus:border-purple-400"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      Email Address (Optional)
-                    </label>
-                    <input
-                      type="email"
-                      value={victimEmail}
-                      onChange={(e) => setVictimEmail(e.target.value)}
-                      placeholder="student@campus.edu"
-                      className="w-full px-4 py-3 rounded-xl bg-navy-950 border border-white/15 text-sm text-white focus:outline-none focus:border-purple-400"
-                    />
-                  </div>
-                </div>
-              </div>
-            ) : (
-              /* Anonymous Mode Fields */
-              <div className="p-6 rounded-2xl bg-cyan-950/20 border border-cyan-500/20 space-y-4">
-                <div className="flex items-center gap-3 text-cyan-300 text-xs font-semibold">
-                  <EyeOff className="w-5 h-5" />
-                  <span>Anonymous Mode Enabled: Identifying fields have been removed.</span>
+      {/* ================= STEP 03: SUBMIT SECURELY ================= */}
+      {currentStep === 3 && (
+        <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in duration-200">
+          <div className="p-6 sm:p-8 rounded-3xl bg-navy-900/80 border border-white/10 backdrop-blur-xl shadow-2xl space-y-6">
+            
+            {/* Anonymity Toggle Card (As Specified: "Report Anonymously with a toggle") */}
+            <div className="p-5 rounded-2xl bg-gradient-to-r from-navy-950 to-navy-900 border border-cyan-500/30 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${isAnonymous ? 'bg-cyan-500/20 text-cyan-300' : 'bg-purple-600/20 text-purple-300'}`}>
+                  {isAnonymous ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Optional Secure Callback Phone / Signal (Purely for emergency follow-up)
-                  </label>
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    {isAnonymous ? '100% Anonymous Mode' : 'Confidential Mode (Staff Follow-Up)'}
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    {isAnonymous 
+                      ? 'No name, student ID, or contact number will be stored.' 
+                      : 'Identity is encrypted and only accessible by Standing Committee faculty.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Toggle Switch */}
+              <button
+                type="button"
+                onClick={() => setIsAnonymous(!isAnonymous)}
+                className={`w-14 h-7 rounded-full transition-colors relative shrink-0 ${isAnonymous ? 'bg-cyan-500' : 'bg-purple-600'}`}
+              >
+                <span className={`w-5 h-5 rounded-full bg-white absolute top-1 transition-transform ${isAnonymous ? 'left-8' : 'left-1'}`} />
+              </button>
+            </div>
+
+            {/* Confidential details if anonymous toggle is OFF */}
+            {!isAnonymous && (
+              <div className="p-4 rounded-2xl bg-black/40 border border-white/10 space-y-3 animate-in slide-in-from-top-2">
+                <p className="text-xs font-semibold text-purple-300">Confidential Victim Contact Details:</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <input
-                    type="tel"
-                    value={victimPhone}
-                    onChange={(e) => setVictimPhone(e.target.value)}
-                    placeholder="Optional phone number (leave blank if preferred)"
-                    className="w-full px-4 py-3 rounded-xl bg-navy-950 border border-white/15 text-sm text-white focus:outline-none focus:border-cyan-400"
+                    type="text"
+                    value={victimName}
+                    onChange={(e) => setVictimName(e.target.value)}
+                    placeholder="Your Full Name *"
+                    className="px-4 py-2.5 rounded-xl bg-navy-950 border border-white/15 text-xs text-white placeholder-slate-500 focus:outline-none"
+                  />
+                  <input
+                    type="text"
+                    value={studentId}
+                    onChange={(e) => setStudentId(e.target.value)}
+                    placeholder="Student ID (e.g. STU-2024-CSE-092) *"
+                    className="px-4 py-2.5 rounded-xl bg-navy-950 border border-white/15 text-xs text-white placeholder-slate-500 focus:outline-none"
                   />
                 </div>
               </div>
             )}
 
-            {/* Navigation buttons */}
-            <div className="pt-4 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => setCurrentStep(2)}
-                className="px-5 py-3 rounded-xl bg-white/10 text-slate-300 font-semibold text-sm hover:bg-white/20 transition-colors flex items-center gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleNextFromStep3}
-                className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-500 text-white font-bold text-sm flex items-center gap-2 hover:opacity-95 shadow-glow-purple transition-all"
-              >
-                <span>Continue to Suspect Details</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* =========================================================
-            STEP 4: SUSPECT DETAILS (ALL OPTIONAL)
-            ========================================================= */}
-        {currentStep === 4 && (
-          <div className="space-y-6">
-            <div>
+            {/* Suspect Information (Optional) */}
+            <div className="space-y-3 pt-2 border-t border-white/5">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl sm:text-2xl font-bold text-white">
-                  Step 4: Suspect / Accused Details
-                </h2>
-                <span className="text-[11px] px-2.5 py-1 rounded-full bg-white/10 text-slate-300 border border-white/10 font-semibold">
-                  All Fields Optional
-                </span>
+                <span className="text-xs font-semibold text-slate-300">Suspect Information (Leave blank if unknown)</span>
+                <span className="text-[10px] text-slate-500">OPTIONAL</span>
               </div>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                Provide whatever information is known. This helps the automatic escalation engine detect repeat offenders.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-navy-950/80 border border-white/10 text-xs text-amber-300 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>&ldquo;Ignore any field if you do not know the information.&rdquo;</span>
-            </div>
-
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Suspect Name or Handle
-                  </label>
-                  <input
-                    type="text"
-                    value={suspectName}
-                    onChange={(e) => setSuspectName(e.target.value)}
-                    placeholder="e.g. Vikas R. or @campus_threat"
-                    className="w-full px-4 py-3 rounded-xl bg-navy-950 border border-white/15 text-sm text-white focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Department
-                  </label>
-                  <input
-                    type="text"
-                    value={suspectDept}
-                    onChange={(e) => setSuspectDept(e.target.value)}
-                    placeholder="e.g. Mechanical Engineering"
-                    className="w-full px-4 py-3 rounded-xl bg-navy-950 border border-white/15 text-sm text-white focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Class / Year
-                  </label>
-                  <input
-                    type="text"
-                    value={suspectClass}
-                    onChange={(e) => setSuspectClass(e.target.value)}
-                    placeholder="e.g. Final Year / 3rd Year"
-                    className="w-full px-4 py-3 rounded-xl bg-navy-950 border border-white/15 text-sm text-white focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Phone Number / Social Profile
-                  </label>
-                  <input
-                    type="text"
-                    value={suspectPhone}
-                    onChange={(e) => setSuspectPhone(e.target.value)}
-                    placeholder="e.g. Phone number, Instagram link, or Discord ID"
-                    className="w-full px-4 py-3 rounded-xl bg-navy-950 border border-white/15 text-sm text-white focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Additional Identifying Information
-                </label>
-                <textarea
-                  value={suspectInfo}
-                  onChange={(e) => setSuspectInfo(e.target.value)}
-                  rows={3}
-                  placeholder="Physical descriptions, vehicle license number, associates, hostel room number, or specific mannerisms..."
-                  className="w-full px-4 py-3 rounded-xl bg-navy-950 border border-white/15 text-sm text-white focus:outline-none focus:border-cyan-400"
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input
+                  type="text"
+                  value={suspectName}
+                  onChange={(e) => setSuspectName(e.target.value)}
+                  placeholder="Suspect Name / Social Media Handle"
+                  className="px-4 py-2.5 rounded-xl bg-navy-950 border border-white/15 text-xs text-white placeholder-slate-500 focus:outline-none"
+                />
+                <input
+                  type="text"
+                  value={suspectDept}
+                  onChange={(e) => setSuspectDept(e.target.value)}
+                  placeholder="Suspect Department / Year (If known)"
+                  className="px-4 py-2.5 rounded-xl bg-navy-950 border border-white/15 text-xs text-white placeholder-slate-500 focus:outline-none"
                 />
               </div>
             </div>
 
-            {/* Navigation buttons */}
-            <div className="pt-4 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => setCurrentStep(3)}
-                className="px-5 py-3 rounded-xl bg-white/10 text-slate-300 font-semibold text-sm hover:bg-white/20 transition-colors flex items-center gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleNextFromStep4}
-                className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-500 text-white font-bold text-sm flex items-center gap-2 hover:opacity-95 shadow-glow-purple transition-all"
-              >
-                <span>Review &amp; Confirm Submission</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* =========================================================
-            STEP 5: REVIEW & CONFIRMATION
-            ========================================================= */}
-        {currentStep === 5 && (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-white">
-                Step 5: Review &amp; Submit Complaint
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                Verify the summarized details before submitting to the encrypted intake vault.
-              </p>
-            </div>
-
-            {/* Summary Cards */}
-            <div className="space-y-4">
+            {/* Drag & Drop Evidence Upload */}
+            <div className="space-y-2 pt-2 border-t border-white/5">
+              <label className="text-xs font-semibold text-slate-300">Evidence Attachments (Screenshots, PDFs, Photos)</label>
               
-              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-wrap justify-between items-center gap-3">
-                <div>
-                  <span className="text-xs text-slate-400">Category &amp; Type</span>
-                  <div className="text-sm font-bold text-white">
-                    {complaintType === 'OFFLINE_RAGGING' ? 'Offline Ragging' : 'Online Ragging'} — {subcategory}
-                  </div>
-                </div>
-                <div className="text-xs font-semibold px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                  {frequency}
-                </div>
+              <div className="border-2 border-dashed border-white/15 hover:border-cyan-400/50 rounded-2xl p-6 text-center transition-all bg-white/2 cursor-pointer relative">
+                <input
+                  type="file"
+                  multiple
+                  onChange={handleFileDrop}
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                />
+                <UploadCloud className="w-8 h-8 text-cyan-400 mx-auto mb-2 opacity-80" />
+                <p className="text-xs font-semibold text-slate-200">
+                  Click or drag files here to attach evidence
+                </p>
+                <p className="text-[10px] text-slate-500 mt-1">
+                  Supported formats: PNG, JPG, PDF, MP4, MP3 (Up to 25MB)
+                </p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
-                <div className="text-xs text-slate-400">Incident Details</div>
-                <div className="text-xs text-slate-300">
-                  <strong>Date &amp; Time:</strong> {incidentDate} at {incidentTime} • <strong>Location:</strong> {location}
+              {/* Uploaded File Chips */}
+              {evidenceFiles.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {evidenceFiles.map((file, i) => (
+                    <span key={i} className="px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs flex items-center gap-2">
+                      <span className="truncate max-w-[180px]">{file.name}</span>
+                      <button type="button" onClick={() => handleRemoveFile(i)} className="text-slate-400 hover:text-white">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </span>
+                  ))}
                 </div>
-                <div className="text-xs text-slate-300 pt-2 border-t border-white/5">
-                  <strong>Description:</strong> {description}
-                </div>
-                {evidenceList.length > 0 && (
-                  <div className="text-xs text-cyan-300 font-semibold pt-1">
-                    ✓ {evidenceList.length} evidence attachment(s) ready for upload
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-                  <div className="text-xs text-slate-400 mb-1">Reporting Mode</div>
-                  <div className="text-sm font-bold text-white">
-                    {isAnonymous ? 'Anonymous Report' : `Confidential (${victimName})`}
-                  </div>
-                  <div className="text-xs text-slate-400 mt-0.5">
-                    {isAnonymous ? 'Identity omitted' : `${victimDept} • ${classYear}`}
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-                  <div className="text-xs text-slate-400 mb-1">Suspect Profile</div>
-                  <div className="text-sm font-bold text-white">
-                    {suspectName || 'Not specified'}
-                  </div>
-                  <div className="text-xs text-slate-400 mt-0.5">
-                    {suspectDept || 'Unknown department'}
-                  </div>
-                </div>
-              </div>
-
+              )}
             </div>
 
-            {/* Mandatory Checkbox Affirmation */}
-            <div className="p-5 rounded-2xl bg-purple-950/30 border border-purple-500/30 space-y-3">
+            {/* Confirmation Checkbox */}
+            <div className="pt-2 border-t border-white/5">
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={confirmedAccuracy}
                   onChange={(e) => setConfirmedAccuracy(e.target.checked)}
-                  className="mt-1 w-4 h-4 rounded border-purple-500 text-purple-600 focus:ring-purple-500 focus:ring-offset-navy-950"
+                  className="mt-1 rounded border-white/20 text-purple-600 focus:ring-0"
                 />
-                <span className="text-xs sm:text-sm text-slate-200 leading-relaxed">
-                  &ldquo;I confirm that the information provided is accurate to the best of my knowledge.&rdquo;
+                <span className="text-xs text-slate-300 leading-relaxed">
+                  I confirm that the information provided is accurate to the best of my knowledge. I understand false reports are subject to campus student conduct guidelines.
                 </span>
               </label>
-              <div className="text-[11px] text-slate-400 pl-7">
-                CampusSafe guarantees zero retaliation. Intentionally fraudulent complaints are subject to disciplinary review.
-              </div>
-            </div>
-
-            {/* Navigation & Submit Button */}
-            <div className="pt-4 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => setCurrentStep(4)}
-                className="px-5 py-3 rounded-xl bg-white/10 text-slate-300 font-semibold text-sm hover:bg-white/20 transition-colors flex items-center gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back</span>
-              </button>
-              
-              <button
-                type="button"
-                disabled={!confirmedAccuracy || isSubmitting}
-                onClick={handleSubmitComplaint}
-                className="px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 via-brand-violet to-cyan-500 disabled:opacity-50 text-white font-bold text-base flex items-center gap-2.5 hover:opacity-95 shadow-glow-purple transition-all"
-              >
-                {isSubmitting ? (
-                  <span>Encrypting &amp; Submitting...</span>
-                ) : (
-                  <>
-                    <Lock className="w-4 h-4" />
-                    <span>Submit Confidential Complaint</span>
-                  </>
-                )}
-              </button>
             </div>
           </div>
-        )}
 
-        {/* =========================================================
-            STEP 6: SUCCESS & UNIQUE COMPLAINT ID GENERATION
-            ========================================================= */}
-        {currentStep === 6 && submittedComplaint && (
-          <div className="text-center py-6 space-y-8 animate-in zoom-in-95 duration-300">
-            
-            <div className="w-20 h-20 rounded-full bg-emerald-500/20 border-2 border-emerald-500/50 flex items-center justify-center mx-auto shadow-2xl">
-              <CheckCircle2 className="w-10 h-10 text-emerald-400" />
-            </div>
-
-            <div>
-              <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 mb-3">
-                REPORT FILED SECURELY
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
-                Your complaint has been submitted successfully.
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-400 mt-2 max-w-md mx-auto">
-                Our automatic intake engine has verified the submission and initiated dispatch to the appointed campus authority.
-              </p>
-            </div>
-
-            {/* Unique Complaint ID Box */}
-            <div className="max-w-md mx-auto p-6 rounded-3xl bg-navy-950 border border-cyan-500/30 shadow-glow-cyan text-left space-y-4">
-              
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Unique Complaint ID
-                </span>
-                <span className="text-[10px] bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded-full font-mono">
-                  Keep Secret
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between bg-navy-900 p-3.5 rounded-2xl border border-white/10">
-                <span className="text-2xl font-black font-mono tracking-wider text-cyan-300">
-                  {submittedComplaint.complaint_id}
-                </span>
-                <button
-                  type="button"
-                  onClick={copyComplaintId}
-                  className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs text-white font-semibold flex items-center gap-1.5 transition-colors"
-                >
-                  {copiedId ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Copied</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Copy</span>
-                    </>
-                  )}
-                </button>
-              </div>
-
-              <div className="space-y-2 text-xs text-slate-300 pt-2 border-t border-white/10">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Submission Date:</span>
-                  <span>{new Date(submittedComplaint.created_at).toLocaleDateString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Complaint Category:</span>
-                  <span className="font-semibold text-white">{submittedComplaint.type}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Initial Status:</span>
-                  <span className="text-amber-400 font-bold">{submittedComplaint.status}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Assigned Authority:</span>
-                  <span className="text-purple-300 font-bold">
-                    Level {submittedComplaint.escalation_level} ({submittedComplaint.assigned_authority})
-                  </span>
-                </div>
-              </div>
-
-              {/* Automatic Escalation Note if triggered */}
-              {submittedComplaint.repeat_count > 1 && (
-                <div className="p-3 rounded-xl bg-purple-900/40 border border-purple-500/30 text-xs text-purple-200">
-                  <strong className="block text-white mb-0.5">⚡ Automatic Escalation Triggered</strong>
-                  Repeated incident pattern detected (Report #{submittedComplaint.repeat_count}). Escalated to {submittedComplaint.assigned_authority}.
-                </div>
-              )}
-
-            </div>
-
-            {/* Instruction Warning */}
-            <div className="max-w-md mx-auto p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200 flex items-start gap-3 text-left">
-              <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <span>
-                <strong>Important:</strong> Save your Complaint ID. You will need it to track your complaint and view updates.
-              </span>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-              <Link
-                href={`/track?id=${encodeURIComponent(submittedComplaint.complaint_id)}`}
-                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-500 text-white font-bold text-sm shadow-glow-purple hover:opacity-95 transition-all"
-              >
-                Track Complaint
-              </Link>
-              <Link
-                href="/"
-                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 font-semibold text-sm transition-colors"
-              >
-                Return Home
-              </Link>
-            </div>
-
+          {/* Submit Action Buttons */}
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="px-5 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold border border-white/10 transition-colors flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back</span>
+            </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-brand-violet to-cyan-500 text-white font-bold text-sm shadow-glow-purple flex items-center gap-2 hover:opacity-95 active:scale-95 transition-all disabled:opacity-50"
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>{submitting ? 'Encrypting & Transmitting...' : 'Submit Report'}</span>
+            </button>
           </div>
-        )}
+        </form>
+      )}
 
-      </div>
+      {/* ================= STEP 04: SUCCESS STATE (As Specified) ================= */}
+      {currentStep === 4 && createdComplaint && (
+        <div className="p-8 sm:p-12 rounded-3xl bg-navy-900/90 border border-emerald-500/40 backdrop-blur-2xl shadow-2xl text-center space-y-6 animate-in zoom-in-95 duration-300">
+          <div className="w-20 h-20 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center text-emerald-400 mx-auto shadow-glow-emerald">
+            <CheckCircle2 className="w-10 h-10" />
+          </div>
+
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              ✓ Report Submitted
+            </h2>
+            <p className="text-sm text-slate-300 mt-2 max-w-md mx-auto">
+              “Thank you for helping make the campus safer.”
+            </p>
+          </div>
+
+          {/* Cryptographic ID Display Box */}
+          <div className="p-5 rounded-2xl bg-black/50 border border-white/15 max-w-md mx-auto space-y-2">
+            <p className="text-xs text-slate-400 font-medium">Your Confidential Tracking Key</p>
+            <div className="flex items-center justify-center gap-3">
+              <span className="text-2xl sm:text-3xl font-mono font-black text-cyan-300 tracking-wider">
+                {createdComplaint.complaint_id}
+              </span>
+              <button
+                onClick={copyComplaintId}
+                className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
+                title="Copy ID"
+              >
+                {idCopied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+              </button>
+            </div>
+            <p className="text-[11px] text-slate-500">
+              Save this ID. You can track investigation milestones publicly without logging in.
+            </p>
+          </div>
+
+          {/* Action Links */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <Link
+              href={`/track?id=${createdComplaint.complaint_id}`}
+              className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-glow-cyan transition-all flex items-center justify-center gap-2"
+            >
+              <span>Track Investigation Status</span>
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+            <Link
+              href="/map"
+              className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-xs font-semibold transition-colors"
+            >
+              Explore Safe Zones Map
+            </Link>
+          </div>
+        </div>
+      )}
 
     </div>
   );
@@ -1227,15 +769,8 @@ function ReportContent() {
 
 export default function ReportPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center text-slate-400">
-        <div className="flex items-center gap-3">
-          <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
-          <span>Loading secure intake form...</span>
-        </div>
-      </div>
-    }>
-      <ReportContent />
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-slate-400">Loading Report Wizard...</div>}>
+      <ReportWizardContent />
     </Suspense>
   );
 }

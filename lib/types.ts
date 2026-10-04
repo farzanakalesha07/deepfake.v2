@@ -76,7 +76,7 @@ export interface Complaint {
   id: string;
   complaint_id: string; // E.g. CS-2026-8F42K
   type: ComplaintCategory;
-  subcategory: OfflineSubcategory | OnlineSubcategory | string;
+  subcategory: OfflineSubcategory | OnlineSubcategory;
   description: string;
   incident_date: string;
   incident_time: string;

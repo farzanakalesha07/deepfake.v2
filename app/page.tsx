@@ -5,32 +5,30 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   ShieldCheck, 
-  AlertTriangle, 
-  MapPin, 
-  Navigation, 
+  Eye, 
+  Users, 
+  ArrowRight, 
+  Lock, 
   FileText, 
   Search, 
   Sparkles, 
   Shield, 
+  AlertOctagon, 
   CheckCircle2, 
   Clock, 
-  ChevronRight, 
-  TrendingUp, 
-  ArrowRight,
-  Radio,
-  Lock,
-  Activity,
-  PhoneCall
+  ChevronRight,
+  TrendingUp,
+  Award,
+  Zap,
+  Globe,
+  Radio
 } from 'lucide-react';
+import { HeroIllustration } from '@/components/HeroIllustration';
 import { EscalationFlowVisual } from '@/components/EscalationFlowVisual';
-import { EmergencySOSModal } from '@/components/EmergencySOSModal';
-import { StudentDashboardSection } from '@/components/StudentDashboardSection';
-import { SafeZonesSection } from '@/components/SafeZonesSection';
 
 export default function HomePage() {
   const router = useRouter();
   const [quickTrackId, setQuickTrackId] = useState('');
-  const [sosModalOpen, setSosModalOpen] = useState(false);
 
   const handleQuickTrack = (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,275 +38,320 @@ export default function HomePage() {
   };
 
   return (
-    <div className="relative overflow-hidden space-y-16 sm:space-y-24 pb-16">
+    <div className="relative overflow-hidden">
       
-      {/* Background Decorative Blur Orbs */}
-      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[900px] h-[450px] bg-purple-700/10 rounded-full blur-[160px] pointer-events-none" />
-      <div className="absolute top-[600px] right-0 w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-[180px] pointer-events-none" />
-      <div className="absolute top-[1200px] left-0 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[160px] pointer-events-none" />
+      {/* Background radial glow orbs */}
+      <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-purple-700/10 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-[600px] right-0 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[160px] pointer-events-none" />
 
-      {/* ========================================================
-          HERO SECTION (Cinematic 2026 Platform Showcase)
-          ======================================================== */}
-      <section className="relative min-h-[85vh] sm:min-h-[88vh] flex items-center justify-center pt-8 pb-16 px-4 sm:px-6 lg:px-8">
+      {/* =========================================
+          HERO SECTION
+          ========================================= */}
+      <section className="relative pt-12 pb-20 lg:pt-20 lg:pb-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Background Image with Dark Blue Overlay & Glowing Grid */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
-          <img
-            src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80"
-            alt="Campus at dusk"
-            className="w-full h-full object-cover scale-105 opacity-25"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-navy-950/80 via-navy-950/95 to-navy-950" />
-          
-          {/* Subtle animated safety mesh connecting lines */}
-          <svg className="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 1200 800" preserveAspectRatio="none">
-            <line x1="200" y1="200" x2="600" y2="400" stroke="#06B6D4" strokeWidth="1" strokeDasharray="6 6" />
-            <line x1="600" y1="400" x2="1000" y2="250" stroke="#8B5CF6" strokeWidth="1" strokeDasharray="6 6" />
-            <line x1="600" y1="400" x2="500" y2="700" stroke="#10B981" strokeWidth="1" strokeDasharray="6 6" />
-            <circle cx="200" cy="200" r="4" fill="#06B6D4" />
-            <circle cx="600" cy="400" r="6" fill="#8B5CF6" />
-            <circle cx="1000" cy="250" r="4" fill="#10B981" />
-          </svg>
+        {/* Top Badge: YOUR SAFETY MATTERS */}
+        <div className="flex justify-center mb-6">
+          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-500/15 via-indigo-500/15 to-cyan-500/15 border border-purple-500/30 text-purple-200 text-xs sm:text-sm font-semibold shadow-glow-purple backdrop-blur-md">
+            <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-ping" />
+            <span className="tracking-wide">YOUR SAFETY MATTERS</span>
+            <span className="text-purple-400">•</span>
+            <span className="text-slate-300 font-normal">Confidential Campus Protection</span>
+          </div>
         </div>
 
-        <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        {/* Hero Headings */}
+        <div className="text-center max-w-4xl mx-auto mb-12">
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white mb-6">
+            Speak Up. <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-violet-300 to-cyan-400">Stay Safe.</span>
+          </h1>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-200 mb-4">
+            Campus Safety & Repeated Harassment Reporting System
+          </h2>
+          <p className="text-base sm:text-lg text-purple-300 font-medium mb-3">
+            Report safely. Protect your privacy. Escalate when it matters.
+          </p>
+          <p className="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            Students can confidentially report unwanted following, harassment, threats, intimidation and online abuse. Repeated complaints are automatically escalated to the appropriate authority.
+          </p>
+
+          {/* Hero CTAs */}
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              href="/report"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl text-base font-bold text-white bg-gradient-to-r from-brand-violet via-purple-600 to-brand-cyan hover:opacity-95 shadow-glow-purple transition-all duration-300 transform hover:-translate-y-0.5"
+            >
+              <FileText className="w-5 h-5" />
+              <span>Report an Incident</span>
+              <ArrowRight className="w-4 h-4 ml-1" />
+            </Link>
+
+            <Link
+              href="/track"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl text-base font-semibold text-slate-200 bg-white/5 hover:bg-white/10 border border-white/15 hover:border-cyan-400/50 shadow-sm transition-all duration-300 backdrop-blur-md"
+            >
+              <Search className="w-5 h-5 text-cyan-400" />
+              <span>Track My Complaint</span>
+            </Link>
+          </div>
+
+          {/* Quick inline complaint track box */}
+          <form onSubmit={handleQuickTrack} className="mt-6 max-w-md mx-auto flex items-center gap-2 p-1.5 rounded-2xl bg-navy-900/80 border border-white/10 backdrop-blur-md">
+            <input
+              type="text"
+              value={quickTrackId}
+              onChange={(e) => setQuickTrackId(e.target.value)}
+              placeholder="Have an ID? e.g. CS-2026-8F42K"
+              className="flex-1 px-4 py-2.5 bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none uppercase font-mono"
+            />
+            <button
+              type="submit"
+              className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1 transition-colors"
+            >
+              <span>Track</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </form>
+        </div>
+
+        {/* Hero Visual Illustration & Device Mockup */}
+        <div className="mt-8">
+          <HeroIllustration />
+        </div>
+
+      </section>
+
+      {/* =========================================
+          THREE FEATURE CARDS
+          ========================================= */}
+      <section className="py-16 bg-navy-950/60 border-y border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* Left Column: Headlines & Call-To-Actions (Col 7) */}
-          <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-            
-            {/* Animated Badge: All systems operational */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold shadow-glow-emerald backdrop-blur-md">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              <span>All systems operational</span>
-              <span className="text-slate-500">•</span>
-              <span className="text-slate-300 font-normal">Active Safety Mesh 2026</span>
-            </div>
-
-            {/* Main Headline (Exact Copy Specified) */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.1]">
-              Your Campus.<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-brand-cyan to-purple-400">
-                Your Safety.
-              </span><br />
-              One Connected Platform.
-            </h1>
-
-            {/* Supporting Text (Exact Copy Specified) */}
-            <p className="text-base sm:text-lg text-slate-300 max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              Campus Safe helps students stay secure with real-time alerts, quick emergency assistance, safe zones and simple reporting.
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
+              Engineered for Student Protection
+            </h2>
+            <p className="text-sm text-slate-400 mt-2">
+              Every feature is built ground-up to eliminate fear, ensure zero leakage, and deliver swift campus justice.
             </p>
+          </div>
 
-            {/* Three Primary CTAs (As Specified: Emergency SOS, Explore Safe Zones, Report an Issue) */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3.5 pt-2">
-              
-              {/* Primary CTA: Emergency SOS */}
-              <button
-                onClick={() => setSosModalOpen(true)}
-                className="px-6 py-4 rounded-2xl bg-gradient-to-r from-rose-600 via-rose-500 to-rose-600 hover:from-rose-500 hover:to-rose-600 text-white font-extrabold text-sm sm:text-base shadow-glow-red hover:shadow-red-500/60 hover:scale-105 active:scale-95 transition-all duration-200 border border-rose-400/50 flex items-center gap-2.5"
-              >
-                <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping" />
-                <span>Emergency SOS</span>
-              </button>
-
-              {/* Secondary CTA: Explore Safe Zones */}
-              <Link
-                href="/map"
-                className="px-6 py-4 rounded-2xl bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 hover:text-white font-bold text-sm sm:text-base border border-cyan-500/40 hover:border-cyan-400 transition-all flex items-center gap-2 active:scale-95"
-              >
-                <Navigation className="w-4 h-4 text-cyan-400" />
-                <span>Explore Safe Zones</span>
-              </Link>
-
-              {/* Third CTA: Report an Issue */}
-              <Link
-                href="/report"
-                className="px-5 py-4 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-200 hover:text-white font-semibold text-sm border border-white/10 transition-colors flex items-center gap-2"
-              >
-                <FileText className="w-4 h-4 text-purple-400" />
-                <span>Report an Issue</span>
-              </Link>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            {/* Card 1: Confidential Reporting */}
+            <div className="relative rounded-3xl p-8 bg-gradient-to-b from-white/[0.06] to-white/[0.01] border border-white/10 backdrop-blur-xl shadow-xl hover:border-purple-500/40 transition-all duration-300 group hover:-translate-y-1">
+              <div className="w-14 h-14 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Shield className="w-7 h-7 text-purple-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-3 group-hover:text-purple-300 transition-colors">
+                Confidential Reporting
+              </h3>
+              <p className="text-sm text-slate-300 leading-relaxed">
+                Your personal information is protected and only shared with authorized personnel when necessary.
+              </p>
+              <div className="mt-6 pt-4 border-t border-white/10 flex items-center gap-2 text-xs text-purple-400 font-medium">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Encrypted Vault Storage</span>
+              </div>
             </div>
 
-            {/* Trust Micro-Metrics */}
-            <div className="pt-4 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-slate-400">
-              <span className="flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                100% Anonymous Mode Available
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Activity className="w-4 h-4 text-cyan-400" />
-                Automated Level 1-3 Escalation
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Lock className="w-4 h-4 text-purple-400" />
-                Zero-Knowledge Privacy
-              </span>
+            {/* Card 2: Privacy Protected */}
+            <div className="relative rounded-3xl p-8 bg-gradient-to-b from-white/[0.06] to-white/[0.01] border border-white/10 backdrop-blur-xl shadow-xl hover:border-cyan-500/40 transition-all duration-300 group hover:-translate-y-1">
+              <div className="w-14 h-14 rounded-2xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Eye className="w-7 h-7 text-cyan-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-3 group-hover:text-cyan-300 transition-colors">
+                Privacy Protected
+              </h3>
+              <p className="text-sm text-slate-300 leading-relaxed">
+                Control what information you provide and keep sensitive details restricted. Choose full anonymity or confidential contact.
+              </p>
+              <div className="mt-6 pt-4 border-t border-white/10 flex items-center gap-2 text-xs text-cyan-400 font-medium">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Zero Public Exposure</span>
+              </div>
+            </div>
+
+            {/* Card 3: Stronger Together */}
+            <div className="relative rounded-3xl p-8 bg-gradient-to-b from-white/[0.06] to-white/[0.01] border border-white/10 backdrop-blur-xl shadow-xl hover:border-indigo-500/40 transition-all duration-300 group hover:-translate-y-1">
+              <div className="w-14 h-14 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Users className="w-7 h-7 text-indigo-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-3 group-hover:text-indigo-300 transition-colors">
+                Stronger Together
+              </h3>
+              <p className="text-sm text-slate-300 leading-relaxed">
+                Help create a safer campus by reporting incidents early. Repeat complaints expose patterns and trigger high-level intervention.
+              </p>
+              <div className="mt-6 pt-4 border-t border-white/10 flex items-center gap-2 text-xs text-indigo-300 font-medium">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Pattern Detection Mesh</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* =========================================
+          HOW IT WORKS (4 STEPS)
+          ========================================= */}
+      <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 mb-3">
+            <Clock className="w-3.5 h-3.5" />
+            <span>TRANSPARENT 4-STEP WORKFLOW</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
+            How It Works
+          </h2>
+          <p className="text-sm sm:text-base text-slate-400 mt-2">
+            From the moment you submit to full resolution, you maintain complete tracking transparency.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          
+          {/* STEP 1 */}
+          <div className="relative p-6 rounded-3xl bg-navy-900/60 border border-white/10 hover:border-purple-500/40 transition-all duration-300 flex flex-col justify-between">
+            <div className="absolute -top-3.5 left-6 px-3 py-0.5 rounded-full text-xs font-extrabold bg-purple-600 text-white shadow-md">
+              STEP 1
+            </div>
+            <div className="mt-4">
+              <h3 className="text-lg font-bold text-white mb-2">Submit a complaint</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Select Offline or Online ragging. Provide incident details, optional evidence, and choose Anonymous or Confidential reporting.
+              </p>
+            </div>
+            <div className="mt-6 pt-3 border-t border-white/10 text-[11px] text-purple-300 font-mono">
+              ~2 mins to complete
             </div>
           </div>
 
-          {/* Right Column: Floating Glass Telemetry Card (Col 5) */}
-          <div className="lg:col-span-5 flex justify-center relative">
-            
-            {/* Background Glow */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-purple-600/20 to-cyan-500/20 rounded-3xl blur-2xl -z-10" />
-
-            {/* Floating Glass Card (As Specified) */}
-            <div className="w-full max-w-md p-6 sm:p-7 rounded-3xl bg-navy-900/80 border border-white/15 backdrop-blur-2xl shadow-2xl space-y-6 hover:scale-[1.01] transition-transform">
-              
-              {/* Card Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-white/10">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-300">
-                    <Shield className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-white">Campus Telemetry HUD</h3>
-                    <p className="text-[10px] text-slate-400">Real-time status check</p>
-                  </div>
-                </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
-                  LIVE
-                </span>
-              </div>
-
-              {/* Status Items Specified in Prompt */}
-              <div className="space-y-4">
-                
-                {/* 1. Campus Status: SAFE */}
-                <div className="p-3.5 rounded-2xl bg-black/40 border border-emerald-500/30 flex items-center justify-between">
-                  <div>
-                    <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Campus Status</p>
-                    <p className="text-lg font-black text-emerald-400 mt-0.5">🟢 SAFE</p>
-                  </div>
-                  <span className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse shadow-glow-emerald" />
-                </div>
-
-                {/* 2. Security Team: ONLINE */}
-                <div className="p-3.5 rounded-2xl bg-black/40 border border-cyan-500/30 flex items-center justify-between">
-                  <div>
-                    <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Security Team</p>
-                    <p className="text-lg font-black text-cyan-300 mt-0.5">ONLINE</p>
-                  </div>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono text-cyan-300 bg-cyan-500/10 border border-cyan-500/20">
-                    4 Patrols Active
-                  </span>
-                </div>
-
-                {/* 3. Last Updated: Just now */}
-                <div className="flex items-center justify-between text-xs text-slate-400 px-1">
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-slate-500" />
-                    Last Updated
-                  </span>
-                  <span className="font-semibold text-slate-200">Just now</span>
-                </div>
-
-              </div>
-
-              {/* Quick Incident Tracking Search Box */}
-              <div className="pt-2 border-t border-white/10 space-y-2">
-                <label className="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
-                  <Search className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Track Existing Complaint</span>
-                </label>
-                <form onSubmit={handleQuickTrack} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={quickTrackId}
-                    onChange={(e) => setQuickTrackId(e.target.value)}
-                    placeholder="e.g. CS-2026-8F42K"
-                    className="flex-1 px-3.5 py-2.5 rounded-xl bg-black/50 border border-white/15 text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-cyan-400"
-                  />
-                  <button
-                    type="submit"
-                    className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-glow-purple transition-all shrink-0"
-                  >
-                    Track
-                  </button>
-                </form>
-              </div>
-
+          {/* STEP 2 */}
+          <div className="relative p-6 rounded-3xl bg-navy-900/60 border border-white/10 hover:border-cyan-500/40 transition-all duration-300 flex flex-col justify-between">
+            <div className="absolute -top-3.5 left-6 px-3 py-0.5 rounded-full text-xs font-extrabold bg-cyan-500 text-navy-950 font-bold shadow-md">
+              STEP 2
             </div>
+            <div className="mt-4">
+              <h3 className="text-lg font-bold text-white mb-2">Receive a unique Complaint ID</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Instantly receive an encrypted alphanumeric code (e.g., <code className="text-cyan-300">CS-2026-8F42K</code>) to track updates without login.
+              </p>
+            </div>
+            <div className="mt-6 pt-3 border-t border-white/10 text-[11px] text-cyan-300 font-mono">
+              Unique & Non-traceable
+            </div>
+          </div>
 
+          {/* STEP 3 */}
+          <div className="relative p-6 rounded-3xl bg-navy-900/60 border border-white/10 hover:border-indigo-500/40 transition-all duration-300 flex flex-col justify-between">
+            <div className="absolute -top-3.5 left-6 px-3 py-0.5 rounded-full text-xs font-extrabold bg-indigo-600 text-white shadow-md">
+              STEP 3
+            </div>
+            <div className="mt-4">
+              <h3 className="text-lg font-bold text-white mb-2">Track your complaint</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Follow real-time status progression from Under Review to Action Taken, with sanitized status messages.
+              </p>
+            </div>
+            <div className="mt-6 pt-3 border-t border-white/10 text-[11px] text-indigo-300 font-mono">
+              Real-time audit log
+            </div>
+          </div>
+
+          {/* STEP 4 */}
+          <div className="relative p-6 rounded-3xl bg-navy-900/60 border border-white/10 hover:border-rose-500/40 transition-all duration-300 flex flex-col justify-between">
+            <div className="absolute -top-3.5 left-6 px-3 py-0.5 rounded-full text-xs font-extrabold bg-rose-500 text-white shadow-md">
+              STEP 4
+            </div>
+            <div className="mt-4">
+              <h3 className="text-lg font-bold text-white mb-2">Repeated reports trigger escalation</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                If the suspect has multiple reports or the incident repeats, our engine automatically escalates the case to the Dean or Higher Authorities.
+              </p>
+            </div>
+            <div className="mt-6 pt-3 border-t border-white/10 text-[11px] text-rose-300 font-mono">
+              Zero tolerance policy
+            </div>
           </div>
 
         </div>
 
       </section>
 
-      {/* ========================================================
-          STUDENT DASHBOARD SECTION (Live Greeting & Metrics)
-          ======================================================== */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <StudentDashboardSection />
-      </div>
-
-      {/* ========================================================
-          DESIGNATED SAFE ZONES SHOWCASE
-          ======================================================== */}
-      <div id="safe-zones" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <SafeZonesSection />
-      </div>
-
-      {/* ========================================================
-          AUTOMATED ESCALATION HIERARCHY FLOWCHART
-          ======================================================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="p-6 sm:p-10 rounded-3xl bg-navy-900/80 border border-white/10 backdrop-blur-xl shadow-2xl space-y-6">
-          <div className="text-center max-w-2xl mx-auto space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-cyan-500/10 text-cyan-300 border border-cyan-500/25">
-              <TrendingUp className="w-3.5 h-3.5 text-cyan-400" />
-              <span>OBJECTIVE SAFETY CHARTER</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Automated 3-Level Escalation Engine
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-400">
-              Campus Safe eliminates bureaucratic delays. Repeated harassment reports against any suspect or zone bypass junior faculty and promote directly to apex authorities.
-            </p>
-          </div>
-
-          {/* Interactive Flowchart Visual */}
+      {/* =========================================
+          ESCALATION HIERARCHY SECTION
+          ========================================= */}
+      <section className="py-16 bg-navy-950/80 border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <EscalationFlowVisual />
         </div>
       </section>
 
-      {/* ========================================================
-          EMERGENCY SOS CALLOUT BANNER
-          ======================================================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-rose-950/40 via-navy-900 to-navy-950 border border-rose-500/30 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
-          <div className="space-y-2 text-center md:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
-              <AlertTriangle className="w-3 h-3 text-rose-400" />
-              <span>RAPID DISPATCH AVAILABLE</span>
+      {/* =========================================
+          TWO REPORT TYPES PREVIEW CALLOUT
+          ========================================= */}
+      <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-purple-900/40 via-navy-900 to-cyan-950/40 border border-white/15 relative overflow-hidden">
+          
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            
+            <div className="lg:col-span-8">
+              <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-white/10 text-cyan-300 border border-white/10 mb-4">
+                CHOOSE YOUR INCIDENT CATEGORY
+              </span>
+              <h2 className="text-2xl sm:text-4xl font-extrabold text-white mb-4">
+                Ready to make our campus safer?
+              </h2>
+              <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl">
+                Whether you experienced in-person intimidation on college grounds or digital harassment through messaging apps, we have dedicated fast-track investigation units.
+              </p>
+
+              <div className="mt-6 flex flex-wrap gap-4">
+                <Link
+                  href="/report?type=OFFLINE_RAGGING"
+                  className="px-5 py-3 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/40 text-purple-200 text-xs sm:text-sm font-bold transition-all flex items-center gap-2"
+                >
+                  <span>Report Offline Ragging</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+                <Link
+                  href="/report?type=ONLINE_RAGGING"
+                  className="px-5 py-3 rounded-xl bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-500/40 text-cyan-200 text-xs sm:text-sm font-bold transition-all flex items-center gap-2"
+                >
+                  <span>Report Online Cyber Harassment</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
             </div>
-            <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Feeling Unsafe On Campus Right Now?
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
-              Tap Emergency SOS to broadcast your live GPS coordinates to on-duty security officers within 180 meters. No paperwork or verification required in an active emergency.
-            </p>
+
+            <div className="lg:col-span-4 bg-navy-950/80 p-6 rounded-2xl border border-white/10 space-y-3">
+              <div className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                <Lock className="w-4 h-4 text-emerald-400" />
+                Safety Guarantee
+              </div>
+              <ul className="text-xs text-slate-400 space-y-2">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                  <span>No login or account creation required for students</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                  <span>Suspects never know who filed the complaint</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                  <span>Direct disciplinary committee oversight</span>
+                </li>
+              </ul>
+            </div>
+
           </div>
 
-          <button
-            onClick={() => setSosModalOpen(true)}
-            className="px-8 py-4 rounded-2xl bg-gradient-to-r from-rose-600 to-rose-500 text-white font-black text-base shadow-glow-red hover:scale-105 active:scale-95 transition-all shrink-0 border border-rose-400/50"
-          >
-            Launch Emergency SOS
-          </button>
         </div>
       </section>
-
-      {/* Global SOS Modal */}
-      <EmergencySOSModal 
-        isOpen={sosModalOpen} 
-        onClose={() => setSosModalOpen(false)} 
-      />
 
     </div>
   );

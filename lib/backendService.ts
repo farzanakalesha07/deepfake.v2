@@ -460,53 +460,6 @@ export class BackendService {
     return updatedComplaint;
   }
 
-  public static escalate(
-    complaintId: string,
-    targetAuthority: AuthorityRole,
-    note?: string,
-    callerRole: AuthorityRole = 'HOD'
-  ): Complaint | null {
-    let targetLevel: EscalationLevel = 2;
-    if (targetAuthority === 'Higher Authority') targetLevel = 3;
-    if (targetAuthority === 'Dean') targetLevel = 2;
-    if (targetAuthority === 'HOD') targetLevel = 1;
-
-    const escalateNote = note || `Escalated by ${callerRole} to ${targetAuthority}`;
-    return this.updateComplaintStatus(complaintId, 'Escalated', escalateNote, callerRole, targetLevel);
-  }
-
-  public static addNote(
-    complaintId: string,
-    note: string,
-    authority: AuthorityRole = 'HOD'
-  ): Complaint | null {
-    const complaints = this.getComplaints();
-    const normalized = complaintId.trim().toUpperCase();
-    const index = complaints.findIndex(c => c.complaint_id.toUpperCase() === normalized || c.id === complaintId);
-    if (index === -1) return null;
-
-    const current = complaints[index];
-    const newUpdate: ComplaintUpdate = {
-      id: `up-${Date.now()}`,
-      complaint_id: current.complaint_id,
-      authority: authority,
-      status: current.status,
-      note: note,
-      escalation_level: current.escalation_level,
-      created_at: new Date().toISOString(),
-    };
-
-    const updatedComplaint: Complaint = {
-      ...current,
-      updated_at: new Date().toISOString(),
-      updates: [...(current.updates || []), newUpdate],
-    };
-
-    complaints[index] = updatedComplaint;
-    this.saveComplaints(complaints);
-    return updatedComplaint;
-  }
-
   public static resetToDemo(): Complaint[] {
     this.saveComplaints(SEED_COMPLAINTS);
     return SEED_COMPLAINTS;

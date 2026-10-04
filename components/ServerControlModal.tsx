@@ -31,7 +31,7 @@ interface ServerHealth {
   port?: number;
   database?: {
     type: string;
-    file?: string;
+    file: string;
     complaints_count: number;
   };
 }
@@ -49,26 +49,18 @@ export const ServerControlModal: React.FC<ServerControlModalProps> = ({ isOpen, 
     setLoading(true);
     const start = Date.now();
 
-    // Check Standalone Express Backend or environment URL
+    // Check Standalone Express Backend on port 5000
     try {
-      const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-      const backendUrl = process.env.NEXT_PUBLIC_SERVER_URL || (isLocalhost ? 'http://localhost:5000' : '');
-      if (backendUrl) {
-        const res = await fetch(`${backendUrl}/api/health`, { method: 'GET', cache: 'no-store' });
-        const latency = Date.now() - start;
-        if (res.ok) {
-          const data = await res.json();
-          setBackendOnline(true);
-          setBackendLatency(latency);
-          setHealthData(data);
-        } else {
-          setBackendOnline(false);
-          setBackendLatency(null);
-        }
-      } else {
+      const res = await fetch('http://localhost:5000/api/health', { method: 'GET', cache: 'no-store' });
+      const latency = Date.now() - start;
+      if (res.ok) {
+        const data = await res.json();
         setBackendOnline(true);
-        setBackendLatency(12);
-        setHealthData({ status: 'HEALTHY', database: { type: 'CLIENT_CACHE', complaints_count: 5 } });
+        setBackendLatency(latency);
+        setHealthData(data);
+      } else {
+        setBackendOnline(false);
+        setBackendLatency(null);
       }
     } catch {
       setBackendOnline(false);
@@ -278,7 +270,7 @@ export const ServerControlModal: React.FC<ServerControlModalProps> = ({ isOpen, 
           </button>
 
           <a
-            href={process.env.NEXT_PUBLIC_SERVER_URL || '/api/health'}
+            href="http://localhost:5000"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white text-xs font-medium transition-colors"

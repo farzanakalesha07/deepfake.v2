@@ -16,7 +16,12 @@ import {
   Sparkles,
   RefreshCw,
   ExternalLink,
-  ShieldAlert
+  ShieldAlert,
+  Calendar,
+  MapPin,
+  UserCheck,
+  Check,
+  Copy
 } from 'lucide-react';
 import { Complaint, ComplaintStatus } from '@/lib/types';
 import { ComplaintStore } from '@/lib/store';
@@ -30,6 +35,7 @@ function TrackContent() {
   const [complaint, setComplaint] = useState<Complaint | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [copiedId, setCopiedId] = useState(false);
 
   // Check URL query param e.g. /track?id=CS-2026-8F42K
   useEffect(() => {
@@ -67,7 +73,7 @@ function TrackContent() {
       if (!found) {
         showToast('Not Found', `No complaint found with ID: ${idToLook.trim()}`, 'error');
       }
-    }, 300);
+    }, 250);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -75,251 +81,295 @@ function TrackContent() {
     doSearch(searchId);
   };
 
-  // Timeline Step calculation
-  const timelineSteps = [
-    { key: 'Submitted', label: 'Submitted', desc: 'Complaint registered in secure database' },
-    { key: 'Under Review', label: 'Under Review', desc: 'Preliminary evaluation by investigating faculty' },
-    { key: 'Forwarded to HOD', label: 'Forwarded to HOD', desc: 'Department Head inquiry and mediation' },
-    { key: 'Forwarded to Dean', label: 'Forwarded to Dean', desc: 'Level 2 Escalation: Student Welfare & Discipline' },
-    { key: 'Higher Authority Review', label: 'Higher Authority Review', desc: 'Level 3: Anti-Ragging Standing Committee' },
-    { key: 'Resolved', label: 'Resolved', desc: 'Disciplinary action fulfilled & safety established' },
-  ];
-
-  const getStepProgressIndex = (status: ComplaintStatus, level: number): number => {
-    if (status === 'Resolved' || status === 'Closed') return 5;
-    if (level === 3 || status === 'Escalated' && level === 3) return 4;
-    if (level === 2 || status === 'Escalated' && level === 2) return 3;
-    if (status === 'Action Taken' || level === 1 && status === 'Under Review') return 2;
-    if (status === 'Under Review') return 1;
-    return 0; // Submitted
+  const handleCopyId = (id: string) => {
+    navigator.clipboard.writeText(id);
+    setCopiedId(true);
+    showToast('Copied', `${id} copied to clipboard`, 'success');
+    setTimeout(() => setCopiedId(false), 2000);
   };
 
-  const currentStepIndex = complaint ? getStepProgressIndex(complaint.status, complaint.escalation_level) : 0;
+  // Timeline representation corresponding exactly to the required stages:
+  // ✓ Complaint Submitted -> ✓ HOD Notified -> ● Under Review -> ○ Dean Escalation -> ○ Higher Authority
+  const getTimelineStages = (c: Complaint) => {
+    const stages = [
+      {
+        id: 'submitted',
+        title: 'Complaint Submitted',
+        desc: 'Report encrypted & registered into campus safety registry',
+        completed: true,
+        current: false
+      },
+      {
+        id: 'hod_notified',
+        title: 'HOD Notified',
+        desc: 'Department Head proctorial alert issued for preliminary inquiry',
+        completed: c.status !== 'Submitted' || c.escalation_level >= 1,
+        current: c.status === 'Submitted' && c.escalation_level === 1
+      },
+      {
+        id: 'under_review',
+        title: 'Under Review',
+        desc: 'Evidence verified; disciplinary summons & witness statements active',
+        completed: c.status === 'Action Taken' || c.status === 'Resolved' || c.status === 'Closed' || c.escalation_level > 1,
+        current: c.status === 'Under Review'
+      },
+      {
+        id: 'dean_escalation',
+        title: 'Dean Escalation',
+        desc: 'Level 2 Escalation: Repeated suspect incident forwarded to Student Affairs',
+        completed: c.escalation_level >= 2 && (c.status === 'Action Taken' || c.status === 'Resolved' || c.status === 'Closed' || c.escalation_level > 2),
+        current: c.escalation_level === 2 && (c.status === 'Escalated' || c.status === 'Under Review')
+      },
+      {
+        id: 'higher_authority',
+        title: 'Higher Authority Review',
+        desc: 'Level 3 Apex Anti-Ragging Committee & Vice-Chancellor tribunal',
+        completed: c.escalation_level >= 3 && (c.status === 'Action Taken' || c.status === 'Resolved' || c.status === 'Closed'),
+        current: c.escalation_level >= 3 && c.status === 'Escalated'
+      }
+    ];
+
+    return stages;
+  };
 
   return (
-    <div className="min-h-screen py-10 sm:py-16 max-w-4xl mx-auto px-4 sm:px-6">
+    <div className="min-h-screen py-10 sm:py-16 max-w-4xl mx-auto px-4 sm:px-6 space-y-10">
       
-      {/* Page Title */}
-      <div className="text-center max-w-2xl mx-auto mb-10">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 mb-3">
-          <Clock className="w-3.5 h-3.5" />
-          <span>REAL-TIME STATUS INQUIRY</span>
+      {/* ========================================================
+          VICTIM LOGIN & TRACKING CARD
+          ======================================================== */}
+      <div className="text-center max-w-2xl mx-auto">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 mb-3">
+          <Search className="w-3.5 h-3.5" />
+          <span>ZERO-KNOWLEDGE TRACKING</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-white">
           Track Your Complaint
         </h1>
         <p className="text-xs sm:text-sm text-slate-400 mt-2">
-          Enter your unique alphanumeric Complaint ID to view live investigation progress and sanitized authority notes.
+          Only for tracking your complaint. You can track the status of your report using your Complaint ID.
         </p>
       </div>
 
-      {/* Search Input Bar */}
-      <div className="bg-navy-900/90 border border-white/15 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl mb-8">
-        <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchId}
-              onChange={(e) => setSearchId(e.target.value.toUpperCase())}
-              placeholder="Enter Complaint ID (e.g. CS-2026-8F42K)"
-              className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-navy-950 border border-white/15 text-sm sm:text-base text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-mono uppercase tracking-wider"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={isSearching}
-            className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-cyan-500 hover:opacity-95 text-white font-bold text-sm shadow-glow-purple flex items-center justify-center gap-2 transition-all"
-          >
-            {isSearching ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
-            ) : (
-              <>
-                <Search className="w-4 h-4" />
-                <span>Track Status</span>
-              </>
-            )}
-          </button>
-        </form>
-
-        {/* Quick Demo Pre-seed Chips for Evaluators */}
-        <div className="mt-4 pt-4 border-t border-white/10 flex flex-wrap items-center gap-2">
-          <span className="text-xs text-slate-400 font-medium">Try Demo Complaints:</span>
-          {[
-            { id: 'CS-2026-8F42K', label: 'CS-2026-8F42K (Under Review / HOD)' },
-            { id: 'CS-2026-91AB2', label: 'CS-2026-91AB2 (Escalated to Dean)' },
-            { id: 'CS-2026-7XY92', label: 'CS-2026-7XY92 (Resolved / Higher Auth)' },
-            { id: 'CS-2026-3M87Q', label: 'CS-2026-3M87Q (Action Taken)' },
-          ].map((item) => (
+      {/* Glass Search / Login Card */}
+      <div className="glass-card p-6 sm:p-8 shadow-2xl relative">
+        <form onSubmit={handleSearchSubmit} className="space-y-4">
+          <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+            Enter Complaint ID
+          </label>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                value={searchId}
+                onChange={(e) => setSearchId(e.target.value.toUpperCase())}
+                placeholder="e.g. CS-2026-8F42K"
+                className="w-full pl-11 pr-4 py-3 rounded-2xl glass-input text-sm font-mono uppercase placeholder-slate-500 focus:outline-none"
+              />
+            </div>
             <button
-              key={item.id}
-              type="button"
-              onClick={() => {
-                setSearchId(item.id);
-                doSearch(item.id);
-              }}
-              className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-cyan-300 text-xs font-mono border border-white/10 transition-colors"
+              type="submit"
+              disabled={isSearching}
+              className="px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:opacity-95 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-glow-purple transition-all"
             >
-              {item.id}
+              {isSearching ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span>Searching Registry...</span>
+                </>
+              ) : (
+                <>
+                  <span>Login / Track Complaint &rarr;</span>
+                </>
+              )}
             </button>
-          ))}
-        </div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 text-[11px] text-slate-400">
+            <span className="flex items-center gap-1.5 text-slate-400">
+              <Lock className="w-3 h-3 text-emerald-400" />
+              Do not expose sensitive victim details unnecessarily.
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-slate-500">Quick Demo IDs:</span>
+              {['CS-2026-8F42K', 'CS-2026-91AB2', 'CS-2026-7XY92'].map((id) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => {
+                    setSearchId(id);
+                    doSearch(id);
+                  }}
+                  className="font-mono text-cyan-300 hover:underline hover:text-white"
+                >
+                  {id}
+                </button>
+              ))}
+            </div>
+          </div>
+        </form>
       </div>
 
-      {/* =========================================================
-          TRACKING RESULTS
-          ========================================================= */}
+      {/* ========================================================
+          COMPLAINT DETAILS & TIMELINE
+          ======================================================== */}
       {complaint && (
-        <div className="space-y-6 animate-in fade-in duration-300">
+        <div className="space-y-6 animate-in fade-in duration-200">
           
-          {/* Main Status Header Card */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-navy-900/90 border border-white/15 backdrop-blur-xl shadow-2xl">
-            
+          {/* Header Card: Details */}
+          <div className="glass-panel p-6 sm:p-8 space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
               <div>
-                <span className="text-xs text-slate-400">Tracking Complaint:</span>
+                <span className="text-[10px] font-mono uppercase text-slate-400 tracking-wider">OFFICIAL INCIDENT FILE</span>
                 <div className="flex items-center gap-3 mt-1">
-                  <h2 className="text-2xl sm:text-3xl font-black font-mono tracking-wider text-cyan-300">
+                  <h2 className="text-2xl font-black font-mono text-cyan-300 tracking-wide">
                     {complaint.complaint_id}
                   </h2>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
-                    complaint.status === 'Resolved' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' :
-                    complaint.status === 'Escalated' ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' :
-                    complaint.status === 'Under Review' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' :
-                    complaint.status === 'Action Taken' ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' :
-                    'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
-                  }`}>
-                    {complaint.status}
-                  </span>
+                  <button
+                    onClick={() => handleCopyId(complaint.complaint_id)}
+                    className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                    title="Copy Complaint ID"
+                  >
+                    {copiedId ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
                 </div>
               </div>
 
-              <div className="sm:text-right">
-                <span className="text-xs text-slate-400">Current Authority Jurisdiction:</span>
-                <div className="text-sm font-bold text-purple-300 mt-0.5">
-                  Level {complaint.escalation_level}: {complaint.assigned_authority}
-                </div>
-                <div className="text-[11px] text-slate-400">
-                  Last updated {new Date(complaint.updated_at).toLocaleDateString()}
-                </div>
-              </div>
-            </div>
+              {/* Status & Escalation Badge */}
+              <div className="flex items-center gap-2">
+                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                  complaint.status === 'Resolved'
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                    : complaint.status === 'Escalated'
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                    : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                }`}>
+                  {complaint.status}
+                </span>
 
-            {/* General Info Strip (Strictly privacy protected: NO victim info displayed!) */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 my-6">
-              <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
-                <div className="text-[11px] text-slate-400">Category</div>
-                <div className="text-xs font-bold text-white mt-1">
-                  {complaint.type === 'ONLINE_RAGGING' ? 'Online Ragging' : 'Offline Ragging'}
-                </div>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
-                <div className="text-[11px] text-slate-400">Date Submitted</div>
-                <div className="text-xs font-bold text-white mt-1">
-                  {new Date(complaint.created_at).toLocaleDateString()}
-                </div>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
-                <div className="text-[11px] text-slate-400">Subtype</div>
-                <div className="text-xs font-bold text-cyan-400 mt-1 truncate" title={complaint.subcategory}>
-                  {complaint.subcategory}
-                </div>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
-                <div className="text-[11px] text-slate-400">Repeat Index</div>
-                <div className="text-xs font-bold text-purple-300 mt-1">
-                  Report #{complaint.repeat_count}
-                </div>
+                <span className={`px-3 py-1 rounded-full text-xs font-mono font-bold ${
+                  complaint.escalation_level === 3
+                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                    : complaint.escalation_level === 2
+                    ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
+                    : 'bg-blue-500/20 text-blue-300 border border-blue-500/40'
+                }`}>
+                  Level {complaint.escalation_level}
+                </span>
               </div>
             </div>
 
-            {/* Privacy Guarantee Banner */}
-            <div className="p-3.5 rounded-xl bg-purple-950/40 border border-purple-500/20 text-xs text-purple-200 flex items-center gap-2 mb-8">
-              <Lock className="w-4 h-4 text-purple-400 shrink-0" />
-              <span>
-                <strong>Confidentiality Shield:</strong> Private victim identity and unredacted sensitive details are restricted to authorized inquiry officers and hidden from public status tracking.
-              </span>
+            {/* Grid of Key Info */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+              <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10">
+                <span className="text-[10px] font-mono uppercase text-slate-400 block mb-1">Complaint Type</span>
+                <span className="font-bold text-white block">
+                  {complaint.type === 'OFFLINE_RAGGING' ? 'Offline Ragging' : 'Online Ragging'}
+                </span>
+                <span className="text-[11px] text-slate-400 truncate block">{complaint.subcategory}</span>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10">
+                <span className="text-[10px] font-mono uppercase text-slate-400 block mb-1">Submitted Date</span>
+                <span className="font-bold text-white block">
+                  {new Date(complaint.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </span>
+                <span className="text-[11px] text-slate-400 font-mono">
+                  {new Date(complaint.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10">
+                <span className="text-[10px] font-mono uppercase text-slate-400 block mb-1">Assigned Authority</span>
+                <span className="font-bold text-purple-300 block">{complaint.assigned_authority}</span>
+                <span className="text-[11px] text-slate-400">Investigating Officer</span>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10">
+                <span className="text-[10px] font-mono uppercase text-slate-400 block mb-1">Victim Privacy</span>
+                <span className="font-bold text-emerald-400 block">Protected PII</span>
+                <span className="text-[11px] text-slate-400">Zero Public Leakage</span>
+              </div>
             </div>
 
-            {/* =========================================================
-                TIMELINE GRAPHIC (Prompt Section 9)
-                Submitted ↓ Under Review ↓ Forwarded to HOD ↓ Forwarded to Dean ↓ Higher Authority Review ↓ Resolved
-                ========================================================= */}
-            <div className="pt-2">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300 mb-6 flex items-center gap-2">
+            {/* Incident Summary */}
+            <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10 text-xs text-slate-300 space-y-1">
+              <span className="text-[10px] font-mono uppercase text-slate-400 block">Incident Statement</span>
+              <p className="leading-relaxed">{complaint.description}</p>
+            </div>
+          </div>
+
+          {/* ========================================================
+              FUTURISTIC GLASS TIMELINE
+              ======================================================== */}
+          <div className="glass-card p-6 sm:p-8 space-y-6">
+            <div className="flex items-center justify-between pb-4 border-b border-white/10">
+              <h3 className="text-base font-extrabold text-white flex items-center gap-2">
                 <Clock className="w-4 h-4 text-cyan-400" />
-                Investigation Progression Timeline
+                <span>Escalation &amp; Investigation Progression</span>
               </h3>
-
-              <div className="relative pl-6 sm:pl-8 space-y-8 before:absolute before:left-3 sm:before:left-4 before:top-2 before:bottom-2 before:w-0.5 before:bg-white/15">
-                {timelineSteps.map((step, idx) => {
-                  const isCompleted = idx <= currentStepIndex;
-                  const isCurrent = idx === currentStepIndex;
-
-                  return (
-                    <div key={step.key} className="relative flex items-start gap-4">
-                      {/* Step Circle Indicator */}
-                      <div
-                        className={`absolute -left-6 sm:-left-8 w-6 sm:w-8 h-6 sm:h-8 rounded-full flex items-center justify-center text-xs transition-all duration-300 ${
-                          isCompleted
-                            ? isCurrent
-                              ? 'bg-purple-600 text-white ring-4 ring-purple-500/30'
-                              : 'bg-cyan-500 text-navy-950 font-bold'
-                            : 'bg-navy-900 border border-white/20 text-slate-500'
-                        }`}
-                      >
-                        {isCompleted && !isCurrent ? (
-                          <CheckCircle2 className="w-4 h-4" />
-                        ) : (
-                          <span>{idx + 1}</span>
-                        )}
-                      </div>
-
-                      <div className="flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h4 className={`text-sm font-bold ${
-                            isCurrent ? 'text-cyan-300' : isCompleted ? 'text-white' : 'text-slate-500'
-                          }`}>
-                            {step.label}
-                          </h4>
-                          {isCurrent && (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                              CURRENT STAGE
-                            </span>
-                          )}
-                        </div>
-                        <p className={`text-xs mt-1 ${isCompleted ? 'text-slate-300' : 'text-slate-500'}`}>
-                          {step.desc}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <span className="text-xs font-mono text-slate-400">Real-time audit chain</span>
             </div>
 
-            {/* Sanitized Action Updates Feed */}
+            {/* Vertical Glass Timeline */}
+            <div className="relative pl-6 sm:pl-8 space-y-8 before:absolute before:left-3 sm:before:left-4 before:top-2 before:bottom-2 before:w-0.5 before:bg-white/10">
+              {getTimelineStages(complaint).map((stage, idx) => (
+                <div key={stage.id} className="relative">
+                  {/* Timeline Node Symbol */}
+                  <div className={`absolute -left-6 sm:-left-8 top-0.5 w-6 sm:w-8 h-6 sm:h-8 rounded-full flex items-center justify-center text-xs transition-all ${
+                    stage.completed 
+                      ? 'bg-emerald-500/20 border border-emerald-400 text-emerald-400 shadow-glow-safe' 
+                      : stage.current 
+                      ? 'bg-cyan-500/30 border border-cyan-400 text-cyan-300 animate-pulse shadow-glow-cyan' 
+                      : 'bg-white/5 border border-white/20 text-slate-500'
+                  }`}>
+                    {stage.completed ? (
+                      <Check className="w-3.5 h-3.5" />
+                    ) : stage.current ? (
+                      <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                    ) : (
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-600" />
+                    )}
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-white/20 transition-all">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className={`text-sm font-bold ${
+                        stage.completed ? 'text-white' : stage.current ? 'text-cyan-300' : 'text-slate-400'
+                      }`}>
+                        {stage.title}
+                      </h4>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 text-slate-400">
+                        {stage.completed ? '✓ Completed' : stage.current ? '● In Progress' : '○ Pending'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                      {stage.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Official Authority Updates Audit Trail */}
             {complaint.updates && complaint.updates.length > 0 && (
-              <div className="mt-10 pt-6 border-t border-white/10 space-y-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                  Official Status &amp; Action Notices
+              <div className="mt-8 pt-6 border-t border-white/10 space-y-4">
+                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-purple-400" />
+                  <span>Official Authority Logged Updates ({complaint.updates.length})</span>
                 </h4>
+
                 <div className="space-y-2.5">
-                  {complaint.updates.map((update, idx) => (
-                    <div
-                      key={update.id || idx}
-                      className="p-3.5 rounded-2xl bg-white/5 border border-white/5 text-xs text-slate-300 leading-relaxed"
-                    >
-                      <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-                        <span className="font-semibold text-purple-300">
-                          Authority: {update.authority}
+                  {complaint.updates.map((up) => (
+                    <div key={up.id} className="p-3.5 rounded-xl bg-white/[0.02] border border-white/10 text-xs">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="font-bold text-purple-300">{up.authority}</span>
+                        <span className="text-[10px] font-mono text-slate-500">
+                          {new Date(up.created_at).toLocaleString()}
                         </span>
-                        <span>{new Date(update.created_at).toLocaleString()}</span>
                       </div>
-                      <p>{update.note}</p>
+                      <p className="text-slate-300 leading-relaxed">{up.note}</p>
                     </div>
                   ))}
                 </div>
@@ -328,42 +378,19 @@ function TrackContent() {
 
           </div>
 
-          {/* Need help or emergency notice */}
-          <div className="p-6 rounded-3xl bg-navy-950 border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <div className="text-sm font-bold text-white">Need to provide additional information?</div>
-              <div className="text-xs text-slate-400">
-                You can report a follow-up or contact the safety proctor directly.
-              </div>
-            </div>
-            <Link
-              href="/safety"
-              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 text-xs font-semibold transition-colors shrink-0"
-            >
-              View Campus Safety Desk
-            </Link>
-          </div>
-
         </div>
       )}
 
-      {/* Empty Search Result State */}
+      {/* If searched and not found */}
       {hasSearched && !complaint && !isSearching && (
-        <div className="p-12 text-center rounded-3xl bg-navy-900/60 border border-white/10 space-y-4">
-          <AlertCircle className="w-12 h-12 text-amber-400 mx-auto" />
-          <h3 className="text-lg font-bold text-white">No Complaint Found</h3>
-          <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
-            We couldn&apos;t find an incident registered with ID <code className="text-cyan-300 font-mono">{searchId}</code>. Please double check the ID format (e.g. CS-2026-8F42K).
+        <div className="glass-card p-10 text-center space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mx-auto">
+            <AlertCircle className="w-6 h-6" />
+          </div>
+          <h3 className="text-lg font-bold text-white">No Matching Record Found</h3>
+          <p className="text-xs text-slate-400 max-w-md mx-auto">
+            Please double-check the Complaint ID format. It should follow the convention <code className="text-cyan-300">CS-YYYY-XXXXX</code>.
           </p>
-          <button
-            onClick={() => {
-              setSearchId('CS-2026-8F42K');
-              doSearch('CS-2026-8F42K');
-            }}
-            className="px-4 py-2 rounded-xl bg-purple-600 text-white text-xs font-semibold hover:bg-purple-500 transition-colors"
-          >
-            Load Sample Complaint (CS-2026-8F42K)
-          </button>
         </div>
       )}
 
@@ -374,11 +401,8 @@ function TrackContent() {
 export default function TrackPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center text-slate-400">
-        <div className="flex items-center gap-3">
-          <div className="w-5 h-5 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
-          <span>Loading tracking portal...</span>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
       </div>
     }>
       <TrackContent />

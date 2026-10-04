@@ -155,13 +155,13 @@ export const ComplaintModal: React.FC<ComplaintModalProps> = ({
   const canResolve = currentRole === 'Higher Authority' || currentRole === 'Dean' || currentRole === 'Admin';
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-navy-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-xl flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
       
       {/* Modal Dialog Card */}
-      <div className="relative w-full max-w-4xl bg-navy-900 border border-white/15 rounded-3xl shadow-2xl overflow-hidden my-6">
+      <div className="relative w-full max-w-4xl bg-[#080D24] border border-white/15 rounded-3xl shadow-2xl overflow-hidden my-6">
         
         {/* Header Bar */}
-        <div className="px-6 py-5 bg-navy-950 border-b border-white/10 flex items-center justify-between gap-4">
+        <div className="px-6 py-5 bg-white/[0.02] border-b border-white/10 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <span className="p-2.5 rounded-xl bg-purple-600/20 border border-purple-500/40 text-purple-300">
               <FileText className="w-5 h-5" />

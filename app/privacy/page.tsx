@@ -12,7 +12,9 @@ import {
   FileText, 
   KeyRound,
   CheckCircle2,
-  Sparkles
+  Sparkles,
+  Shield,
+  ArrowRight
 } from 'lucide-react';
 
 export default function PrivacyPage() {
@@ -21,7 +23,7 @@ export default function PrivacyPage() {
       
       {/* Page Header */}
       <div className="text-center max-w-2xl mx-auto">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 mb-3">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 mb-3">
           <Lock className="w-3.5 h-3.5" />
           <span>ZERO RETALIATION PRIVACY GUARANTEE</span>
         </div>
@@ -35,120 +37,112 @@ export default function PrivacyPage() {
 
       {/* Visual Privacy Indicators Banner */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-5 rounded-2xl bg-navy-900/80 border border-white/10 text-center space-y-2">
-          <div className="w-12 h-12 rounded-xl bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center mx-auto">
+        <div className="glass-card p-5 text-center space-y-2">
+          <div className="w-12 h-12 rounded-2xl bg-purple-500/15 text-purple-400 border border-purple-500/30 flex items-center justify-center mx-auto">
             <Lock className="w-6 h-6" />
           </div>
           <h3 className="font-bold text-white text-sm">256-Bit Ingestion Vault</h3>
-          <p className="text-xs text-slate-400">
-            Encrypted in transit and segregated from standard campus SIS records.
+          <p className="text-xs text-slate-400 leading-relaxed">
+            Encrypted in transit and segregated from standard campus student records.
           </p>
         </div>
 
-        <div className="p-5 rounded-2xl bg-navy-900/80 border border-white/10 text-center space-y-2">
-          <div className="w-12 h-12 rounded-xl bg-cyan-600/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center mx-auto">
+        <div className="glass-card p-5 text-center space-y-2">
+          <div className="w-12 h-12 rounded-2xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 flex items-center justify-center mx-auto">
             <EyeOff className="w-6 h-6" />
           </div>
           <h3 className="font-bold text-white text-sm">Blind Tracking Keys</h3>
-          <p className="text-xs text-slate-400">
-            Complaint tracking uses alphanumeric hashes without exposing names.
+          <p className="text-xs text-slate-400 leading-relaxed">
+            Complaint tracking uses alphanumeric token hashes without exposing names.
           </p>
         </div>
 
-        <div className="p-5 rounded-2xl bg-navy-900/80 border border-white/10 text-center space-y-2">
-          <div className="w-12 h-12 rounded-xl bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mx-auto">
+        <div className="glass-card p-5 text-center space-y-2">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mx-auto">
             <UserCheck className="w-6 h-6" />
           </div>
           <h3 className="font-bold text-white text-sm">Role-Gated Access (RBAC)</h3>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-400 leading-relaxed">
             Suspects and unvetted personnel are barred from all complaint records.
           </p>
         </div>
       </div>
 
-      {/* Detailed Q&A Explanations */}
-      <div className="space-y-6">
-        
-        {/* Q1: What information is collected */}
-        <div className="p-6 rounded-3xl bg-navy-900/70 border border-white/10 space-y-3">
-          <h3 className="text-base font-bold text-white flex items-center gap-2">
-            <Database className="w-5 h-5 text-purple-400" />
-            1. What information is collected?
+      {/* Security Pillars Panel */}
+      <div className="glass-panel p-8 space-y-6">
+        <div className="border-b border-white/10 pb-4">
+          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-cyan-400" />
+            <span>Core Privacy Architecture Guarantees</span>
           </h3>
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-            We collect the incident timestamp, campus location or online platform handle, description, frequency, and optional evidence attachments (screenshots, PDFs). If you choose <strong>Confidential Reporting</strong>, your name, student ID, department, and phone number are recorded to assist the proctor in follow-up.
+          <p className="text-xs text-slate-400 mt-1">
+            Strict compliance with National Anti-Ragging regulations and privacy mandates.
           </p>
         </div>
 
-        {/* Q2: Why it is collected */}
-        <div className="p-6 rounded-3xl bg-navy-900/70 border border-white/10 space-y-3">
-          <h3 className="text-base font-bold text-white flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-cyan-400" />
-            2. Why it is collected?
-          </h3>
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-            Data is collected solely to substantiate disciplinary action, deter campus ragging, and trigger automated multi-tier escalation when repeated harassment patterns are identified against the same individuals or locations.
-          </p>
-        </div>
+        <div className="space-y-5 text-xs sm:text-sm text-slate-300">
+          
+          <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1.5">
+            <h4 className="font-bold text-white flex items-center gap-2">
+              <span>🔐 Confidential Reporting</span>
+            </h4>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              When you file an incident report, your personal identifying information (name, student roll number, phone number, email) is stripped from public logs and stored in an isolated, role-restricted vault.
+            </p>
+          </div>
 
-        {/* Q3: Who can access it */}
-        <div className="p-6 rounded-3xl bg-navy-900/70 border border-white/10 space-y-3">
-          <h3 className="text-base font-bold text-white flex items-center gap-2">
-            <UserCheck className="w-5 h-5 text-indigo-400" />
-            3. Who can access your information?
-          </h3>
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-            Only designated university inquiry officers hold jurisdiction:
-          </p>
-          <ul className="text-xs text-slate-300 space-y-1.5 list-disc list-inside pl-2">
-            <li><strong>Level 1 (HOD):</strong> Head of Department receives preliminary cases.</li>
-            <li><strong>Level 2 (Dean):</strong> Dean of Student Affairs accesses escalated or repeated reports.</li>
-            <li><strong>Level 3 (Higher Authority):</strong> The Apex Anti-Ragging Standing Tribunal reviews critical matters.</li>
-            <li><strong>Suspects &amp; Peers:</strong> Have <em>zero access</em> to any portion of your submission.</li>
-          </ul>
-        </div>
+          <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1.5">
+            <h4 className="font-bold text-white flex items-center gap-2">
+              <span>👁 Role-Based Visibility</span>
+            </h4>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Student, HOD, Dean, and Higher Authority. Each role sees only the specific evidence and jurisdiction they are authorized to access. Unsanitized student details are never displayed on public feeds.
+            </p>
+          </div>
 
-        {/* Q4: How anonymous reports work */}
-        <div className="p-6 rounded-3xl bg-navy-900/70 border border-white/10 space-y-3">
-          <h3 className="text-base font-bold text-white flex items-center gap-2">
-            <EyeOff className="w-5 h-5 text-emerald-400" />
-            4. How anonymous reports work
-          </h3>
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-            Selecting <strong>Anonymous Report</strong> completely drops name and student ID fields. The server generates a random alphanumeric Complaint ID (e.g., <code className="text-cyan-300 font-mono">CS-2026-8F42K</code>). There is no user account or login tie-in. You hold the only cryptographic key to check your case status.
-          </p>
-        </div>
+          <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1.5">
+            <h4 className="font-bold text-white flex items-center gap-2">
+              <span>🛡 Protected Personal Information</span>
+            </h4>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Students can choose 100% Anonymous reporting at any time. When anonymous, no identifying metadata is saved in database fields whatsoever.
+            </p>
+          </div>
 
-        {/* Q5: How complaint tracking works */}
-        <div className="p-6 rounded-3xl bg-navy-900/70 border border-white/10 space-y-3">
-          <h3 className="text-base font-bold text-white flex items-center gap-2">
-            <KeyRound className="w-5 h-5 text-amber-400" />
-            5. How complaint tracking works without exposing identity
-          </h3>
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-            The public tracking page sanitizes all personal data before rendering. It displays only the timeline stage, current authority jurisdiction, and generic action updates (e.g. &ldquo;Summons dispatched to suspect&rdquo;)—never exposing student names or confidential testimonies.
-          </p>
+          <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1.5">
+            <h4 className="font-bold text-white flex items-center gap-2">
+              <span>📄 Controlled Evidence Access</span>
+            </h4>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Uploaded photo evidence, screenshots, and audio logs are sanitized of EXIF location metadata upon upload and locked in an access-logged evidence locker.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1.5">
+            <h4 className="font-bold text-white flex items-center gap-2">
+              <span>🚫 No Unnecessary Exposure</span>
+            </h4>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Accused suspects are strictly forbidden from viewing reporter identities or access logs, eliminating any threat of retaliation or intimidation.
+            </p>
+          </div>
+
         </div>
 
       </div>
 
-      {/* Trust Quote Card */}
-      <div className="p-8 rounded-3xl bg-gradient-to-r from-purple-900/30 to-navy-900 border border-purple-500/20 text-center space-y-3">
-        <h4 className="text-base font-bold text-white">
-          &ldquo;Speak Up. Stay Safe. Your Privacy Protected.&rdquo;
-        </h4>
-        <p className="text-xs text-slate-400 max-w-lg mx-auto">
-          Complies with the University Grants Commission (UGC) Regulations on Curbing the Menace of Ragging in Higher Educational Institutions.
-        </p>
-        <div className="pt-2">
-          <Link
-            href="/report"
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md transition-colors"
-          >
-            <FileText className="w-4 h-4" />
-            <span>File a Protected Report</span>
-          </Link>
+      {/* Call to action */}
+      <div className="glass-card p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h4 className="text-sm font-bold text-white">Ready to file a protected report?</h4>
+          <p className="text-xs text-slate-400">Takes less than 2 minutes and preserves your full confidentiality.</p>
         </div>
+        <Link
+          href="/report"
+          className="px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:opacity-95 text-white text-xs font-bold shadow-glow-purple transition-all shrink-0"
+        >
+          <span>File Confidential Report &rarr;</span>
+        </Link>
       </div>
 
     </div>

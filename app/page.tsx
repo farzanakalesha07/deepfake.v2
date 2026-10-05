@@ -172,98 +172,71 @@ export default function HomePage() {
 
           </div>
 
-          {/* Right Column: CAMPUS SAFETY STATUS (Futuristic Glass Dashboard) */}
-          <div className="lg:col-span-5">
-            <div className="relative p-6 sm:p-8 rounded-[28px] bg-white/[0.05] backdrop-blur-[20px] border border-white/[0.12] shadow-2xl space-y-6">
+          {/* Right Column: Hero 3D Object - Transparent Holographic Shield & 3D Campus */}
+          <div className="lg:col-span-5 relative">
+            
+            {/* Ambient Backlight Glow */}
+            <div className="absolute -inset-4 bg-gradient-to-tr from-cyan-500/20 via-blue-600/10 to-purple-600/20 rounded-[36px] blur-2xl pointer-events-none" />
+
+            <div className="relative rounded-[28px] bg-[#081522]/85 backdrop-blur-[24px] border border-cyan-500/30 shadow-2xl overflow-hidden group">
               
-              {/* Header: CAMPUS SAFETY STATUS */}
-              <div className="flex items-center justify-between pb-4 border-b border-white/10">
-                <div>
-                  <span className="text-[10px] font-mono tracking-widest text-slate-400 uppercase">TELEMETRY GRID</span>
-                  <h3 className="text-base sm:text-lg font-extrabold text-white tracking-wide">
-                    CAMPUS SAFETY STATUS
-                  </h3>
-                </div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                  <span>CAMPUS SAFE</span>
-                </div>
+              {/* Floating Top Status Badge: Campus System Online */}
+              <div className="absolute top-4 left-4 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#050B14]/80 backdrop-blur-xl border border-emerald-500/40 text-[11px] font-mono font-bold text-emerald-300 shadow-glow-safe">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span>Campus System Online</span>
               </div>
 
-              {/* Circular Animated Safety Score */}
-              <div className="flex items-center justify-center py-2">
-                <div className="relative w-44 h-44 flex items-center justify-center">
-                  
-                  {/* Glowing SVG Ring Animation */}
-                  <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="42"
-                      className="stroke-white/10"
-                      strokeWidth="7"
-                      fill="transparent"
-                    />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="42"
-                      className="stroke-emerald-400 animate-ring-glow transition-all duration-1000"
-                      strokeWidth="7"
-                      strokeDasharray="264"
-                      strokeDashoffset={264 - (264 * stats.safeScore) / 100}
-                      strokeLinecap="round"
-                      fill="transparent"
-                    />
-                  </svg>
+              {/* Floating Top Right Quick Telemetry */}
+              <div className="absolute top-4 right-4 z-20 px-2.5 py-1 rounded-xl bg-[#050B14]/80 backdrop-blur-xl border border-white/15 text-[10px] font-mono text-cyan-300 font-bold">
+                GRID 2026.4 // ACTIVE
+              </div>
 
-                  {/* Inner Score Content */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400">Safety Score</span>
-                    <span className="text-4xl font-black text-white tracking-tight">
-                      {stats.safeScore}%
-                    </span>
-                    <span className="text-[11px] font-semibold text-emerald-400">Optimal Grid</span>
+              {/* Central 3D Holographic Shield Object */}
+              <div className="relative w-full h-[280px] sm:h-[320px] overflow-hidden">
+                <img
+                  src="/images/hero-shield.jpg"
+                  alt="3D Holographic Shield protecting miniature campus"
+                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#081522] via-transparent to-transparent" />
+              </div>
+
+              {/* Floating Holographic Satellite Icons Around Shield */}
+              <div className="px-6 py-4 space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/10 text-slate-300">
+                    <MapPin className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Location Shielded</span>
                   </div>
-
-                </div>
-              </div>
-
-              {/* Status Metrics Grid */}
-              <div className="grid grid-cols-3 gap-3 pt-2">
-                
-                <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/10 text-center">
-                  <span className="block text-[10px] font-mono text-slate-400 uppercase">Threat Level</span>
-                  <span className="text-sm font-bold text-cyan-300">LOW</span>
-                </div>
-
-                <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/10 text-center">
-                  <span className="block text-[10px] font-mono text-slate-400 uppercase">Active Reports</span>
-                  <span className="text-sm font-bold text-amber-300">
-                    {stats.pending < 10 ? `0${stats.pending}` : stats.pending}
-                  </span>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/10 text-slate-300">
+                    <Lock className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Privacy Vault</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/10 text-slate-300">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Security Hotspots</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/10 text-slate-300">
+                    <PhoneCall className="w-3.5 h-3.5 text-blue-400" />
+                    <span>24/7 Support</span>
+                  </div>
                 </div>
 
-                <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/10 text-center">
-                  <span className="block text-[10px] font-mono text-slate-400 uppercase">Safe Zones</span>
-                  <span className="text-sm font-bold text-emerald-400">08</span>
+                {/* Status Metrics Strip */}
+                <div className="grid grid-cols-3 gap-2.5 pt-1 border-t border-white/10">
+                  <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/10 text-center">
+                    <span className="block text-[9px] font-mono text-slate-400 uppercase">Threat Level</span>
+                    <span className="text-xs font-bold text-cyan-300">LOW (SAFE)</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/10 text-center">
+                    <span className="block text-[9px] font-mono text-slate-400 uppercase">Safety Score</span>
+                    <span className="text-xs font-bold text-emerald-400">{stats.safeScore}%</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/10 text-center">
+                    <span className="block text-[9px] font-mono text-slate-400 uppercase">Active Nodes</span>
+                    <span className="text-xs font-bold text-purple-300">08 Zones</span>
+                  </div>
                 </div>
-
-              </div>
-
-              {/* Quick Assistant Callout inside Dashboard */}
-              <div className="pt-2 flex items-center justify-between text-xs text-slate-400 border-t border-white/10">
-                <span className="flex items-center gap-1.5">
-                  <Activity className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-                  Live proctorial watchdog online
-                </span>
-                <button
-                  onClick={() => setAiAssistantOpen(true)}
-                  className="text-cyan-300 hover:text-white font-semibold flex items-center gap-1 transition-colors"
-                >
-                  <span>Ask AI</span>
-                  <ChevronRight className="w-3 h-3" />
-                </button>
               </div>
 
             </div>

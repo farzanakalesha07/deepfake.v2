@@ -44,8 +44,11 @@ app.use((req, res, next) => {
 // Serve uploaded files statically
 app.use('/uploads', express.static(UPLOADS_DIR));
 
-// Root API Information Endpoint
+// Root API Information Endpoint (Redirects browsers to frontend app on port 3001)
 app.get('/', (req, res) => {
+  if (req.accepts('html')) {
+    return res.redirect('http://localhost:3001/');
+  }
   res.json({
     name: 'CampusSafe Backend API Server',
     version: '1.0.0',
